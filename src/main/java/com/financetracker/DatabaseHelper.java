@@ -1,9 +1,6 @@
 package com.financetracker;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class DatabaseHelper {
     // The database file will be created right in your project root folder
@@ -13,8 +10,27 @@ public class DatabaseHelper {
         return DriverManager.getConnection(URL);
     }
 
+    public static boolean newUser() {
+        String sql = "SELECT COUNT(1) FROM transactions";
 
-    public static void initializeDatabase() {
+        try(Connection conn = connect();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()){
+
+            if (rs.next()) {
+                int rowCount = rs.getInt(1);
+                // If rowCount is 0, they have never entered a transaction before
+                return rowCount == 0;
+            }
+
+        } catch (SQLException e) {
+            System.out.println("SQL error, " + e.getMessage());
+        }
+        // default to false so the correct message is displayed when the user loads.
+        return false;
+    }
+
+        public static void initializeDatabase() {
         String createTableSQL = "CREATE TABLE IF NOT EXISTS transactions ("
                 + " id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + " amount REAL NOT NULL,"
