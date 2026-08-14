@@ -13,8 +13,8 @@ public class Main {
         SwingUtilities.invokeLater(() -> {
             if(DatabaseHelper.newUser()){
                 SwingUtilities.invokeLater(() -> {
-                    EnterFinancesGUI enterFinancesGUI = new EnterFinancesGUI();
-                    enterFinancesGUI.setVisible(true);
+                    createProfileGUI createProfileGUI = new createProfileGUI();
+                    createProfileGUI.setVisible(true);
                 });
             }else{
                 MainGUI mainGUI = new MainGUI();
