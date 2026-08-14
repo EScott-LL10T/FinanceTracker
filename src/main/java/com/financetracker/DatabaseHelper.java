@@ -30,20 +30,30 @@ public class DatabaseHelper {
         return false;
     }
 
-        public static void initializeDatabase() {
+
+    public static void initializeDatabase() {
         String createTableSQL = "CREATE TABLE IF NOT EXISTS transactions ("
                 + " id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + " amount REAL NOT NULL,"
                 + " category TEXT NOT NULL,"
-                + " description TEXT"
+                + " description TEXT,"
+                + " dateTime TEXT NOT NULL"
+                + ");";
+        String createUsersTableSQL = "CREATE TABLE IF NOT EXISTS profile ("
+                + " id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + " name TEXT NOT NULL,"
+                + " salary REAL not NULL,"
+                + " timeOfAccountCreation TEXT NOT NULL"
                 + ");";
 
         try (Connection conn = connect();
              Statement stmt = conn.createStatement()) {
+            stmt.execute(createUsersTableSQL);
             stmt.execute(createTableSQL);
             System.out.println("Database initialized and table verified.");
         } catch (SQLException e) {
             System.out.println("Database initialization failed: " + e.getMessage());
         }
     }
+
 }
