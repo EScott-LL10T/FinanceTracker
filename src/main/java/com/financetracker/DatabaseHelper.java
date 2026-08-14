@@ -42,6 +42,8 @@ public class DatabaseHelper {
         String createUsersTableSQL = "CREATE TABLE IF NOT EXISTS profile ("
                 + " id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + " name TEXT NOT NULL,"
+                + " role TEXT NOT NULL," // role will be student/ employed.
+                + " debt REAL not NULL,"
                 + " salary REAL not NULL,"
                 + " timeOfAccountCreation TEXT NOT NULL"
                 + ");";
