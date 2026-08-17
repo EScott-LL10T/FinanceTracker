@@ -2,59 +2,143 @@ package com.financetracker;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 
 public class createProfileGUI extends JFrame {
     private JTextField nameField;
     private JComboBox<String> roleComboBox;
-    private JSpinner debtField;
-    private JSpinner salaryField;
-    private JButton submitButton;
+    private JSpinner debtSpinner;
+    private JSpinner salarySpinner;
+    private JButton continueButton;
 
 
     public createProfileGUI(){
         setTitle("Create Profile");
-        setSize(600, 400);
+        setSize(600, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        JLabel nameLabel = new JLabel("Name:");
-        nameField = new JTextField(5);
+        JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 50, 40, 50));
 
-        JLabel roleLabel = new JLabel("Role:");
+        JPanel header = getHeader();
+
+        mainPanel.add(header, BorderLayout.NORTH);
+
+
+        JPanel form = new JPanel(new GridBagLayout());
+
+        form.setBorder(
+                BorderFactory.createCompoundBorder( BorderFactory.createLineBorder(Color.LIGHT_GRAY),
+                        BorderFactory.createEmptyBorder(25, 30, 25, 30)));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 5, 10, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0;
+
+        form.add(new JLabel("Name:"), gbc);
+
+        nameField = new JTextField();
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+
+        form.add(nameField, gbc);
+
+        // Role
+        gbc.gridx = 0;
+        gbc.gridy++;
+
+        form.add(new JLabel("Status:"), gbc);
+
         roleComboBox = new JComboBox<>(
-                new String[]{"Student", "Employed"}
+                new String[]{"Employed", "Student"}
         );
 
-        JLabel debtLabel = new JLabel("Debt:");
-        debtField = new JSpinner(new SpinnerNumberModel(0.0, 0.0, 10000000, 1000));
+        gbc.gridx = 1;
 
-        JLabel salaryLabel = new JLabel("Salary:");
-        salaryField = new JSpinner(new SpinnerNumberModel(0.0, 0.0, 10000000, 1000));
+        form.add(roleComboBox, gbc);
 
-        submitButton = new JButton("Continue");
+        // Debt
+        gbc.gridx = 0;
+        gbc.gridy++;
 
-        JPanel panel = new JPanel(new GridLayout(5, 2, 0, 5));
+        form.add(new JLabel("Debt:"), gbc);
 
-        panel.add(nameLabel);
-        panel.add(nameField);
+        debtSpinner = new JSpinner(
+                new SpinnerNumberModel(
+                        0.0,
+                        0.0,
+                        10000000.0,
+                        1000.0
+                )
+        );
 
-        panel.add(roleLabel);
-        panel.add(roleComboBox);
+        gbc.gridx = 1;
 
-        panel.add(debtLabel);
-        panel.add(debtField);
+        form.add(debtSpinner, gbc);
 
-        panel.add(salaryLabel);
-        panel.add(salaryField);
+        // Salary
+        gbc.gridx = 0;
+        gbc.gridy++;
 
-        panel.add(new JLabel());
-        panel.add(submitButton);
+        form.add(new JLabel("Annual Salary:"), gbc);
 
-        add(panel);
+        salarySpinner = new JSpinner(
+                new SpinnerNumberModel(
+                        0.0,
+                        0.0,
+                        10000000.0,
+                        1000.0
+                )
+        );
 
-        setVisible(true);
+        gbc.gridx = 1;
+
+        form.add(salarySpinner, gbc);
+
+        mainPanel.add(form, BorderLayout.CENTER);
+
+        // Button
+        continueButton = new JButton("Continue");
+        continueButton.setPreferredSize(new Dimension(150, 40));
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(continueButton);
 
 
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        add(mainPanel);
+
+
+        continueButton.addActionListener(e -> continue_());
+
+    }
+
+    private static JPanel getHeader() {
+        Font titleFont = new Font("SansSerif", Font.BOLD, 26);
+
+
+        JLabel title = new JLabel("Welcome to Finance Tracker");
+        title.setFont(titleFont);
+        title.setHorizontalAlignment(SwingConstants.CENTER);
+
+
+        JLabel formTitle = new JLabel("Create a New Profile");
+        formTitle.setFont(titleFont);
+        formTitle.setHorizontalAlignment(SwingConstants.CENTER);
+
+        JPanel header = new JPanel(new GridLayout(2, 1));
+        header.add(title);
+        header.add(formTitle);
+        return header;
+    }
+
+    public static void continue_(){
 
     }
 
