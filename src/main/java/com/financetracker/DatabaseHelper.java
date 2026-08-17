@@ -1,17 +1,43 @@
 package com.financetracker;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 
 public class DatabaseHelper {
     // The database file will be created right in your project root folder
     private static final String URL = "jdbc:sqlite:finance.db";
 
     public static Connection connect() throws SQLException {
+
+        System.out.println(
+                new java.io.File("finance.db").getAbsolutePath()
+        );
         return DriverManager.getConnection(URL);
     }
 
+    public static void createNewUser(String name, String role, double debt, double salary){
+        String sql = "INSERT INTO profile "
+                + "(name, role, debt, salary, timeOfAccountCreation) "
+                + "VALUES (?, ?, ?, ?, ?)";
+
+        try (Connection conn = DatabaseHelper.connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, name);
+            stmt.setString(2, role);
+            stmt.setDouble(3, debt);
+            stmt.setDouble(4, salary);
+            stmt.setString(5, LocalDateTime.now().toString());
+
+            stmt.executeUpdate();
+
+        }catch(SQLException e){
+            System.out.println("SQL error, " + e.getMessage());
+        }
+    }
+
     public static boolean newUser() {
-        String sql = "SELECT COUNT(1) FROM transactions";
+        String sql = "SELECT COUNT(1) FROM profile ";
 
         try(Connection conn = connect();
             PreparedStatement stmt = conn.prepareStatement(sql);
