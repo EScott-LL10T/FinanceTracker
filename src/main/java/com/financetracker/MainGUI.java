@@ -11,7 +11,7 @@ public class MainGUI extends JFrame {
 
     public MainGUI() {
         setTitle("Personal Finance Tracker");
-        setSize(600, 400);
+        setSize(600, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null); // Centers window on screen
 
