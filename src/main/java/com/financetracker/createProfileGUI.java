@@ -5,11 +5,10 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 
 public class createProfileGUI extends JFrame {
-    private JTextField nameField;
-    private JComboBox<String> roleComboBox;
-    private JSpinner debtSpinner;
-    private JSpinner salarySpinner;
-    private JButton continueButton;
+    private final JTextField nameField;
+    private final JComboBox<String> roleComboBox;
+    private final JSpinner debtSpinner;
+    private final JSpinner salarySpinner;
 
 
     public createProfileGUI(){
@@ -103,7 +102,7 @@ public class createProfileGUI extends JFrame {
         mainPanel.add(form, BorderLayout.CENTER);
 
         // Button
-        continueButton = new JButton("Continue");
+        JButton continueButton = new JButton("Continue");
         continueButton.setPreferredSize(new Dimension(150, 40));
 
         JPanel buttonPanel = new JPanel();
@@ -119,7 +118,7 @@ public class createProfileGUI extends JFrame {
 
     }
 
-    private static JPanel getHeader() {
+    private JPanel getHeader() {
         Font titleFont = new Font("SansSerif", Font.BOLD, 26);
 
 
@@ -138,8 +137,24 @@ public class createProfileGUI extends JFrame {
         return header;
     }
 
-    public static void continue_(){
+    private void continue_(){
+        String name = nameField.getText().trim();
+        if(name.isEmpty() || name.length() > 2253){ // longest name currently is 2253.
+            return;
+        }
+        Object objRole = roleComboBox.getSelectedItem();
+        String role;
+        if(objRole == null){
+            role = "employed";
+        }else{
+            role = objRole.toString();
+        }
+        double debt = (double) debtSpinner.getValue();
+        double salary = (double) salarySpinner.getValue();
 
+        MainGUI mainGUI = new MainGUI();
+        this.setVisible(false);
+        mainGUI.setVisible(true);
     }
 
 }
