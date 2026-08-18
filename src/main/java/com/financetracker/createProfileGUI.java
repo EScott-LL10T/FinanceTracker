@@ -152,6 +152,8 @@ public class createProfileGUI extends JFrame {
         double debt = (double) debtSpinner.getValue();
         double salary = (double) salarySpinner.getValue();
 
+        DatabaseHelper.createNewUser(name, role, debt, salary);
+
         MainGUI mainGUI = new MainGUI();
         this.setVisible(false);
         mainGUI.setVisible(true);
