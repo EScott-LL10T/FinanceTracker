@@ -41,7 +41,7 @@ public class MainGUI extends JFrame {
         );
 
         splitPane.setDividerLocation(450);
-        splitPane.setDividerSize(0);
+        splitPane.setDividerSize(1);
         splitPane.setEnabled(false);
 
         splitPane.setOneTouchExpandable(false);
@@ -49,11 +49,40 @@ public class MainGUI extends JFrame {
         splitPane.setResizeWeight(0.7);
 
         add(splitPane, BorderLayout.CENTER);
+
+        JButton exitButton = new JButton("Exit");
+
+        JButton addTransactionButton = new JButton("Add Transaction.");
+
+        JButton editProfileButton = new JButton("Edit Profile");
+
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 3, 20, 20));
+
+        buttonPanel.add(exitButton);
+        buttonPanel.add(addTransactionButton);
+        buttonPanel.add(editProfileButton);
+
+        add(buttonPanel, BorderLayout.SOUTH);
+
+        exitButton.addActionListener(e -> {
+            dispose();
+        });
+
+        addTransactionButton.addActionListener(e -> {
+            System.out.println("add transaction pressed");
+        });
+
+        editProfileButton.addActionListener(e -> {
+            System.out.println("edit profile pressed");
+        });
+
+
+
     }
 
     public JPanel getPieChartPanel(){
         DefaultPieDataset<String> dataset = new DefaultPieDataset<>();
-        double salary = (profile.getSalary() - (profile.getSalary() * 0.60)) / 12;
+        double salary = (profile.getSalary() - (profile.getSalary() * 0.40)) / 12;
 
         dataset.setValue("Rent", 800);
         dataset.setValue("Food", 300);
@@ -86,7 +115,7 @@ public class MainGUI extends JFrame {
         JPanel transactionsPanel = new JPanel();
         Font font = new Font("Arial", Font.PLAIN, 16);
 
-        double monthlySalary = (profile.getSalary() - (profile.getSalary() * 0.60)) / 12;
+        double monthlySalary = (profile.getSalary() - (profile.getSalary() * 0.40)) / 12;
 
 
         transactionsPanel.setLayout(new BoxLayout(transactionsPanel, BoxLayout.Y_AXIS));
@@ -117,7 +146,7 @@ public class MainGUI extends JFrame {
         JLabel taxed = new JLabel("tax");
         taxed.setFont(font);
 
-        JLabel taxedAmount = new JLabel(String.format("£%.2f", profile.getSalary() * 0.60));
+        JLabel taxedAmount = new JLabel(String.format("£%.2f", profile.getSalary() * 0.40 / 12));
         taxedAmount.setFont(font);
 
         transactionsPanel.add(salary);
