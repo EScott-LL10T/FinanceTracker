@@ -2,7 +2,6 @@ package com.financetracker;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 
 public class createProfileGUI extends JFrame {
     private final JTextField nameField;
@@ -156,6 +155,7 @@ public class createProfileGUI extends JFrame {
 
         MainGUI mainGUI = new MainGUI();
         this.setVisible(false);
+        dispose();
         mainGUI.setVisible(true);
     }
 
