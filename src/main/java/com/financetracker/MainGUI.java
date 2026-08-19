@@ -1,9 +1,7 @@
 package com.financetracker;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.labels.PieSectionLabelGenerator;
@@ -125,17 +123,17 @@ public class MainGUI extends JFrame {
         transactionsPanel.add(salary);
         transactionsPanel.add(salaryAmount);
 
-        transactionsPanel.add(Box.createVerticalStrut(20));
+        transactionsPanel.add(Box.createVerticalStrut(5));
 
         transactionsPanel.add(totalSpent);
         transactionsPanel.add(totalSpentAmount);
 
-        transactionsPanel.add(Box.createVerticalStrut(20));
+        transactionsPanel.add(Box.createVerticalStrut(5));
 
         transactionsPanel.add(available);
         transactionsPanel.add(availableAmount);
 
-        transactionsPanel.add(Box.createVerticalStrut(20));
+        transactionsPanel.add(Box.createVerticalStrut(5));
 
         transactionsPanel.add(taxed);
         transactionsPanel.add(taxedAmount);
