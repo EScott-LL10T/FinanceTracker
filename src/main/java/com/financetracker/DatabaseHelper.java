@@ -8,10 +8,6 @@ public class DatabaseHelper {
     private static final String URL = "jdbc:sqlite:finance.db";
 
     public static Connection connect() throws SQLException {
-
-        System.out.println(
-                new java.io.File("finance.db").getAbsolutePath()
-        );
         return DriverManager.getConnection(URL);
     }
 
@@ -54,6 +50,28 @@ public class DatabaseHelper {
         }
         // default to false so the correct message is displayed when the user loads.
         return false;
+    }
+
+    public static Profile getProfile(){
+        String sql = "SELECT name, role, debt, salary, timeOfAccountCreation FROM profile";
+        try (Connection conn = DatabaseHelper.connect();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                String name = rs.getString("name");
+                String role = rs.getString("role");
+                double debt = rs.getDouble("debt");
+                double salary = rs.getDouble("salary");
+                String timeOfAccountCreation =
+                        rs.getString("timeOfAccountCreation");
+                return new Profile(name, role, debt, salary, timeOfAccountCreation);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("SQL error, " + e.getMessage());
+        }
+        return null;
     }
 
 
