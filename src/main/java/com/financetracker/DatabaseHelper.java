@@ -11,6 +11,39 @@ public class DatabaseHelper {
         return DriverManager.getConnection(URL);
     }
 
+    public static void initializeDatabase() {
+        String createTableSQL =
+                "CREATE TABLE IF NOT EXISTS transactions ("
+                + " id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + " amount REAL NOT NULL,"
+                + " category TEXT NOT NULL,"
+                + " description TEXT,"
+                + " dateTime TEXT NOT NULL"
+                + ");";
+        String createUsersTableSQL =
+                "CREATE TABLE IF NOT EXISTS profile ("
+                + " id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + " name TEXT NOT NULL,"
+                + " role TEXT NOT NULL," // role will be student/ employed.
+                + " debt REAL not NULL,"
+                + " salary REAL not NULL,"
+                + " timeOfAccountCreation TEXT NOT NULL"
+                + ");";
+
+        try (Connection conn = connect();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute(createUsersTableSQL);
+            stmt.execute(createTableSQL);
+            System.out.println("Database initialized and table verified.");
+        } catch (SQLException e) {
+            System.out.println("Database initialization failed: " + e.getMessage());
+        }
+    }
+
+    /* ****************************************************************************************************************/
+    /*                                               PROFILE TABLE                                                    */
+    /* ****************************************************************************************************************/
+
     public static void createNewUser(String name, String role, double debt, double salary){
         String sql = "INSERT INTO profile "
                 + "(name, role, debt, salary, timeOfAccountCreation) "
@@ -74,31 +107,26 @@ public class DatabaseHelper {
         return null;
     }
 
+    /* ****************************************************************************************************************/
+    /*                                         TRANSACTIONS TABLE                                                     */
+    /* ****************************************************************************************************************/
 
-    public static void initializeDatabase() {
-        String createTableSQL = "CREATE TABLE IF NOT EXISTS transactions ("
-                + " id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + " amount REAL NOT NULL,"
-                + " category TEXT NOT NULL,"
-                + " description TEXT,"
-                + " dateTime TEXT NOT NULL"
-                + ");";
-        String createUsersTableSQL = "CREATE TABLE IF NOT EXISTS profile ("
-                + " id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + " name TEXT NOT NULL,"
-                + " role TEXT NOT NULL," // role will be student/ employed.
-                + " debt REAL not NULL,"
-                + " salary REAL not NULL,"
-                + " timeOfAccountCreation TEXT NOT NULL"
-                + ");";
+    public static void addTransaction(int amount, String category, String description, String dateTime){
+        String sql = "INSERT INTO transactions "
+                + "(amount, category, description, dateTime) "
+                + "VALUES (?, ?, ?, ?)";
+        try (Connection conn = DatabaseHelper.connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-        try (Connection conn = connect();
-             Statement stmt = conn.createStatement()) {
-            stmt.execute(createUsersTableSQL);
-            stmt.execute(createTableSQL);
-            System.out.println("Database initialized and table verified.");
-        } catch (SQLException e) {
-            System.out.println("Database initialization failed: " + e.getMessage());
+            stmt.setInt(1, amount);
+            stmt.setString(2, category);
+            stmt.setString(3, description);
+            stmt.setString(4, dateTime);
+
+            stmt.executeUpdate();
+
+        }catch(SQLException e){
+            System.out.println("SQL error, " + e.getMessage());
         }
     }
 
