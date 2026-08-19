@@ -19,7 +19,7 @@ public class Main {
             }else{
                 MainGUI mainGUI = new MainGUI();
                 mainGUI.setVisible(true);
-                }
+            }
         });
     }
 }
