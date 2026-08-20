@@ -50,11 +50,16 @@ public class MainGUI extends JFrame {
 
         add(splitPane, BorderLayout.CENTER);
 
+        Font buttonFont = new Font("Ariel", Font.PLAIN, 14);
+
         JButton exitButton = new JButton("Exit");
+        exitButton.setFont(buttonFont);
 
         JButton addTransactionButton = new JButton("Add Transaction.");
+        addTransactionButton.setFont(buttonFont);
 
         JButton editProfileButton = new JButton("Edit Profile");
+        editProfileButton.setFont(buttonFont);
 
         JPanel buttonPanel = new JPanel(new GridLayout(1, 3, 20, 20));
 
@@ -64,12 +69,12 @@ public class MainGUI extends JFrame {
 
         add(buttonPanel, BorderLayout.SOUTH);
 
-        exitButton.addActionListener(e -> {
-            dispose();
-        });
+        exitButton.addActionListener(e -> dispose());
 
         addTransactionButton.addActionListener(e -> {
-            System.out.println("add transaction pressed");
+            AddTransactionGUI addTransactionGUI = new AddTransactionGUI(this);
+            setVisible(false);
+            addTransactionGUI.setVisible(true);
         });
 
         editProfileButton.addActionListener(e -> {
