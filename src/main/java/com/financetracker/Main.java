@@ -1,6 +1,6 @@
 package com.financetracker;
 
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -10,15 +10,27 @@ public class Main {
         DatabaseHelper.initializeDatabase();
 
         // Open Swing GUI safely on the Event Dispatch Thread
+        JFrame frame = new JFrame();
+
+        frame.setTitle("Finance Tracker");
+        frame.setSize(600, 600);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLocationRelativeTo(null);
+
         SwingUtilities.invokeLater(() -> {
             if(DatabaseHelper.newUser()){
                 SwingUtilities.invokeLater(() -> {
-                    createProfileGUI createProfileGUI = new createProfileGUI();
-                    createProfileGUI.setVisible(true);
+
+
+                    CreateProfilePanel profilePanel = new CreateProfilePanel(frame);
+
+                    frame.setContentPane(profilePanel);
+                    frame.setVisible(true);
                 });
             }else{
-                MainGUI mainGUI = new MainGUI();
-                mainGUI.setVisible(true);
+                MainPanel mainPanel = new MainPanel(frame);
+                frame.setContentPane(mainPanel);
+                frame.setVisible(true);
             }
         });
     }

@@ -118,7 +118,7 @@ public class DatabaseHelper {
         try (Connection conn = DatabaseHelper.connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, amount);
+            stmt.setDouble(1, amount);
             stmt.setString(2, category);
             stmt.setString(3, description);
             stmt.setString(4, dateTime);

@@ -9,21 +9,16 @@ import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
 import org.jfree.chart.plot.PiePlot;
 import org.jfree.data.general.DefaultPieDataset;
 
-public class MainGUI extends JFrame {
+public class MainPanel extends JPanel {
 
     private final Profile profile;
 
-    public MainGUI() {
+    public MainPanel(JFrame frame) {
         // get data from database.
         profile = DatabaseHelper.getProfile();
         if(profile == null){
             return;
         }
-
-        setTitle("Personal Finance Tracker");
-        setSize(600, 600);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null); // Centers window on screen
 
         // Main layout
         setLayout(new BorderLayout());
@@ -69,12 +64,13 @@ public class MainGUI extends JFrame {
 
         add(buttonPanel, BorderLayout.SOUTH);
 
-        exitButton.addActionListener(e -> dispose());
+        exitButton.addActionListener(e -> frame.dispose());
 
         addTransactionButton.addActionListener(e -> {
-            AddTransactionGUI addTransactionGUI = new AddTransactionGUI(this);
-            setVisible(false);
-            addTransactionGUI.setVisible(true);
+            AddTransactionGUI addTransactionGUI = new AddTransactionGUI(frame, this);
+            frame.setContentPane(addTransactionGUI);
+            frame.revalidate();
+            frame.repaint();
         });
 
         editProfileButton.addActionListener(e -> {

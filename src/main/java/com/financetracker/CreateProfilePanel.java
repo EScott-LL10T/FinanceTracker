@@ -3,25 +3,23 @@ package com.financetracker;
 import javax.swing.*;
 import java.awt.*;
 
-public class createProfileGUI extends JFrame {
+public class CreateProfilePanel extends JPanel{
+    private final JFrame frame;
     private final JTextField nameField;
     private final JComboBox<String> roleComboBox;
     private final JSpinner debtSpinner;
     private final JSpinner salarySpinner;
 
 
-    public createProfileGUI(){
-        setTitle("Create Profile");
-        setSize(600, 600);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
+    public CreateProfilePanel(JFrame frame){
+        this.frame = frame;
 
-        JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 50, 40, 50));
+        setLayout(new BorderLayout(20, 20));
+        setBorder(BorderFactory.createEmptyBorder(40, 50, 40, 50));
 
         JPanel header = getHeader();
 
-        mainPanel.add(header, BorderLayout.NORTH);
+        add(header, BorderLayout.NORTH);
 
 
         JPanel form = new JPanel(new GridBagLayout());
@@ -98,7 +96,7 @@ public class createProfileGUI extends JFrame {
 
         form.add(salarySpinner, gbc);
 
-        mainPanel.add(form, BorderLayout.CENTER);
+        add(form, BorderLayout.CENTER);
 
         // Button
         JButton continueButton = new JButton("Continue");
@@ -108,10 +106,7 @@ public class createProfileGUI extends JFrame {
         buttonPanel.add(continueButton);
 
 
-        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
-
-        add(mainPanel);
-
+        add(buttonPanel, BorderLayout.SOUTH);
 
         continueButton.addActionListener(e -> continue_());
 
@@ -153,10 +148,9 @@ public class createProfileGUI extends JFrame {
 
         DatabaseHelper.createNewUser(name, role, debt, salary);
 
-        MainGUI mainGUI = new MainGUI();
-        this.setVisible(false);
-        dispose();
-        mainGUI.setVisible(true);
+        frame.setContentPane(new MainPanel(frame));
+        frame.revalidate();
+        frame.repaint();
     }
 
 }
