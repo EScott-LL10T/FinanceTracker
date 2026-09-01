@@ -19,6 +19,16 @@ public class AddTransactionGUI extends JPanel {
 
         Font buttonFont = new Font("Ariel", Font.PLAIN, 14);
 
+        Font titleFont = new Font("SansSerif", Font.BOLD, 26);
+
+
+
+        JLabel title = new JLabel("Add Transaction " + profile.getName());
+        title.setFont(titleFont);
+        title.setHorizontalAlignment(SwingConstants.CENTER);
+
+        add(BorderLayout.NORTH, title);
+
 
 
         JPanel form = new JPanel(new GridBagLayout());
