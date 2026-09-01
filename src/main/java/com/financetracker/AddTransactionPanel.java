@@ -4,14 +4,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDateTime;
 
-public class AddTransactionGUI extends JPanel {
+public class AddTransactionPanel extends JPanel {
     private final JFrame frame;
     private final JSpinner amountSpinner;
     private final JComboBox<String> categoryComboBox;
     private final JTextField descriptionTextField;
     private final JSpinner dateSpinner;
 
-    public AddTransactionGUI(JFrame frame, MainPanel mainPanel){
+    public AddTransactionPanel(JFrame frame, MainPanel mainPanel){
         this.frame = frame;
         Profile profile = DatabaseHelper.getProfile();
 
