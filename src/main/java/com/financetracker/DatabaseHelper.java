@@ -2,6 +2,7 @@ package com.financetracker;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 
 public class DatabaseHelper {
     // The database file will be created right in your project root folder
@@ -128,6 +129,28 @@ public class DatabaseHelper {
         }catch(SQLException e){
             System.out.println("SQL error, " + e.getMessage());
         }
+    }
+
+
+    public static ArrayList<Transaction> getTransactions(){
+        ArrayList<Transaction> transactions = new ArrayList<>();
+        String sql = "SELECT amount, category, description, dateTime FROM transactions";
+        try (Connection conn = DatabaseHelper.connect();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while(rs.next()) {
+                int amount = rs.getInt("amount");
+                String category = rs.getString("category");
+                String description = rs.getString("description");
+                String dateTime = rs.getString("dateTime");
+                transactions.add(new Transaction(amount, category, description, dateTime));
+            }
+
+        } catch (SQLException e) {
+            System.out.println("SQL error, " + e.getMessage());
+        }
+        return transactions;
     }
 
 }
