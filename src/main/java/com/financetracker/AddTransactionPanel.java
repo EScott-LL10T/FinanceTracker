@@ -2,7 +2,6 @@ package com.financetracker;
 
 import javax.swing.*;
 import java.awt.*;
-import java.time.LocalDateTime;
 
 public class AddTransactionPanel extends JPanel {
     private final JFrame frame;
@@ -127,7 +126,7 @@ public class AddTransactionPanel extends JPanel {
     }
 
     private void addTransaction(){
-        int amount = (int) amountSpinner.getValue();
+        double amount = (double) amountSpinner.getValue();
         String categoryText = (String) categoryComboBox.getSelectedItem();
         if(categoryText == null){
             return;
@@ -136,11 +135,10 @@ public class AddTransactionPanel extends JPanel {
         if(description.isEmpty() || description.length() > 1000){
             return;
         }
-        LocalDateTime date = (LocalDateTime) dateSpinner.getValue();
-        if(date == null){
+        String dateString = dateSpinner.getValue().toString();
+        if(dateString == null){
             return;
         }
-        String dateString = date.toString();
         DatabaseHelper.addTransaction(amount, categoryText, description, dateString);
 
         MainPanel mainPanel = new MainPanel(frame);

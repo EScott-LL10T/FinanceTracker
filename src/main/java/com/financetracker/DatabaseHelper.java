@@ -112,7 +112,7 @@ public class DatabaseHelper {
     /*                                         TRANSACTIONS TABLE                                                     */
     /* ****************************************************************************************************************/
 
-    public static void addTransaction(int amount, String category, String description, String dateTime){
+    public static void addTransaction(double amount, String category, String description, String dateTime){
         String sql = "INSERT INTO transactions "
                 + "(amount, category, description, dateTime) "
                 + "VALUES (?, ?, ?, ?)";
@@ -140,7 +140,7 @@ public class DatabaseHelper {
              ResultSet rs = stmt.executeQuery()) {
 
             while(rs.next()) {
-                int amount = rs.getInt("amount");
+                double amount = rs.getDouble("amount");
                 String category = rs.getString("category");
                 String description = rs.getString("description");
                 String dateTime = rs.getString("dateTime");

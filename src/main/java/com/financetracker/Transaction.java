@@ -3,19 +3,19 @@ package com.financetracker;
 import java.time.LocalDateTime;
 
 public class Transaction {
-    private final int amount;
+    private final double amount;
     private final String category;
     private final String description;
     private final String dateTime;
 
-    public Transaction(int amount, String category, String description, String dateTime){
+    public Transaction(double amount, String category, String description, String dateTime){
         this.amount = amount;
         this.category = category;
         this.description = description;
         this.dateTime = dateTime;
     }
 
-    public int getAmount(){
+    public double getAmount(){
         return amount;
     }
 
