@@ -2,6 +2,8 @@ package com.financetracker;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.labels.PieSectionLabelGenerator;
@@ -67,31 +69,41 @@ public class MainPanel extends JPanel {
         exitButton.addActionListener(e -> frame.dispose());
 
         addTransactionButton.addActionListener(e -> {
-            AddTransactionGUI addTransactionGUI = new AddTransactionGUI(frame, this);
-            frame.setContentPane(addTransactionGUI);
+            AddTransactionPanel addTransactionPanel = new AddTransactionPanel(frame, this);
+            frame.setContentPane(addTransactionPanel);
             frame.revalidate();
             frame.repaint();
         });
 
-        editProfileButton.addActionListener(e -> {
-            System.out.println("edit profile pressed");
-        });
+        editProfileButton.addActionListener(e -> System.out.println("edit profile pressed"));
 
 
 
     }
 
-    public JPanel getPieChartPanel(){
+    private JPanel getPieChartPanel(){
         DefaultPieDataset<String> dataset = new DefaultPieDataset<>();
-        double salary = (profile.getSalary() - (profile.getSalary() * 0.40)) / 12;
+        double salary = (profile.getSalary() - (profile.getSalary() * 0.40)) / 12.0;
+        ArrayList<Transaction> transactions = DatabaseHelper.getTransactions();
+        double totalSpent = 0.0;
+        for (Transaction transaction : transactions) {
+            double amount = transaction.getAmount();
+            String category = transaction.getCategory();
 
-        dataset.setValue("Rent", 800);
-        dataset.setValue("Food", 300);
-        dataset.setValue("Transport", 150);
-        dataset.setValue("Entertainment", 100);
-        dataset.setValue("Available", salary - 100 - 150 - 300 - 800);
+            if (!dataset.getKeys().contains(category)) {
+                dataset.setValue(category, amount);
+            } else {
+                double currentAmount = dataset.getValue(category).doubleValue();
+                dataset.setValue(category, currentAmount + amount);
+            }
+            totalSpent += amount;
+        }
+        double available = salary - totalSpent;
+
+        dataset.setValue("Available", available);
 
         PiePlot<String> plot = new PiePlot<>(dataset);
+
 
         PieSectionLabelGenerator labelGenerator = new StandardPieSectionLabelGenerator("{0}: £{1} ({2})");
 
@@ -112,7 +124,7 @@ public class MainPanel extends JPanel {
     }
 
 
-    public JPanel getTransactionsPanel(){
+    private JPanel getTransactionsPanel(){
         JPanel transactionsPanel = new JPanel();
         Font font = new Font("Arial", Font.PLAIN, 16);
 
