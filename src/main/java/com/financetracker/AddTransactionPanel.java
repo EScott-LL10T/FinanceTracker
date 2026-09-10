@@ -21,7 +21,7 @@ public class AddTransactionPanel extends JPanel {
         Font titleFont = new Font("SansSerif", Font.BOLD, 26);
 
 
-
+        assert profile != null;
         JLabel title = new JLabel("Add Transaction " + profile.getName());
         title.setFont(titleFont);
         title.setHorizontalAlignment(SwingConstants.CENTER);
@@ -59,7 +59,7 @@ public class AddTransactionPanel extends JPanel {
 
         form.add(new JLabel("Category:"), gbc);
 
-        categoryComboBox = new JComboBox<>(new String[]{"Entertainment", "Rent", "Food", "Transport", "Shopping", "Clothes",
+        categoryComboBox = new JComboBox<>(new String[]{"Entertainment", "Rent", "Food", "Transport", "Shopping",
                 "Other"});
 
         gbc.gridx = 1;

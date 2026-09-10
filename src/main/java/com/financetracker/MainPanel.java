@@ -102,6 +102,13 @@ public class MainPanel extends JPanel {
 
         dataset.setValue("Available", available);
 
+        JFreeChart pieChart = getPieChart(dataset);
+
+        return new ChartPanel(pieChart);
+
+    }
+
+    private static JFreeChart getPieChart(DefaultPieDataset<String> dataset) {
         PiePlot<String> plot = new PiePlot<>(dataset);
 
 
@@ -111,16 +118,16 @@ public class MainPanel extends JPanel {
         plot.setOutlineVisible(false);
         plot.setLabelGenerator(labelGenerator);
 
+        plot.setSectionPaint("Entertainment", Color.RED);
+        plot.setSectionPaint("Rent", Color.BLUE);
+        plot.setSectionPaint("Food", Color.GREEN);
+        plot.setSectionPaint("Transport", Color.ORANGE);
+        plot.setSectionPaint("Shopping", Color.YELLOW);
+        plot.setSectionPaint("Other", Color.GRAY);
+        plot.setSectionPaint("Available", new Color(128, 0, 128));
 
-        JFreeChart pieChart = new JFreeChart(
-                "Budget Distribution",
-                JFreeChart.DEFAULT_TITLE_FONT,
-                plot,
-                true
-        );
 
-        return new ChartPanel(pieChart);
-
+        return new JFreeChart("Budget Distribution", JFreeChart.DEFAULT_TITLE_FONT, plot, true);
     }
 
 
