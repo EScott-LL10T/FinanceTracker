@@ -68,16 +68,13 @@ public class MainPanel extends JPanel {
 
         exitButton.addActionListener(e -> frame.dispose());
 
-        addTransactionButton.addActionListener(e -> {
-            AddTransactionPanel addTransactionPanel = new AddTransactionPanel(frame, this);
-            frame.setContentPane(addTransactionPanel);
-            frame.revalidate();
-            frame.repaint();
-        });
+        addTransactionButton.addActionListener(e ->
+                setNewFrameContent(frame, new AddTransactionPanel(frame, this))
+        );
 
-        editProfileButton.addActionListener(e -> System.out.println("edit profile pressed"));
-
-
+        editProfileButton.addActionListener(e ->
+            setNewFrameContent(frame, new EditProfilePanel(frame, this))
+        );
 
     }
 
@@ -188,5 +185,11 @@ public class MainPanel extends JPanel {
         transactionsPanel.add(taxedAmount);
         return transactionsPanel;
 
+    }
+
+    private void setNewFrameContent(JFrame frame, JPanel panel){
+        frame.setContentPane(panel);
+        frame.revalidate();
+        frame.repaint();
     }
 }
