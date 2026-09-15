@@ -173,6 +173,20 @@ public class DatabaseHelper {
             System.out.println("SQL error, " + e.getMessage());
         }
         return transactions;
+
+    }
+
+    public static void deleteTransactions() {
+        String sql = "DELETE FROM transactions";
+
+        try (Connection conn = connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            System.out.println("SQL error, " + e.getMessage());
+        }
     }
 
 }
