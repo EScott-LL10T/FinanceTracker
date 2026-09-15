@@ -6,8 +6,9 @@ public class EditProfilePanel extends JPanel {
     private final JFrame frame;
     private final Profile profile;
 
+    private JCheckBox deleteTransactionsCheckBox;
     private JTextField nameField;
-    private JComboBox<String> roleComboBox;
+    private JComboBox<String> newRoleComboBox;
     private JSpinner debtSpinner;
     private JSpinner salarySpinner;
 
@@ -52,8 +53,24 @@ public class EditProfilePanel extends JPanel {
     }
 
     private void editProfile(){
-        MainPanel mainPanel = new MainPanel(frame);
-        frame.setContentPane(mainPanel);
+        String name = nameField.getText().trim();
+        if(name.isEmpty() || name.length() > 2253){ // longest name currently is 2253.
+            return;
+        }
+        Object objRole = newRoleComboBox.getSelectedItem();
+        String role;
+        if(objRole == null){
+            role = profile.getRole();
+        }else{
+            role = objRole.toString();
+        }
+        double debt = (double) debtSpinner.getValue();
+        double salary = (double) salarySpinner.getValue();
+
+        DatabaseHelper.updateProfile(name, role, debt, salary);
+
+
+        frame.setContentPane(new MainPanel(frame));
         frame.revalidate();
         frame.repaint();
     }
@@ -87,18 +104,18 @@ public class EditProfilePanel extends JPanel {
         form.add(new JLabel("Status:"), gbc);
 
         if(profile.getRole().equals("Employed")){
-            roleComboBox = new JComboBox<>(
+            newRoleComboBox = new JComboBox<>(
                     new String[]{"Employed", "Student"}
             );
         }else {
-            roleComboBox = new JComboBox<>(
+            newRoleComboBox = new JComboBox<>(
                     new String[]{"Student", "Employed"}
             );
         }
 
         gbc.gridx = 1;
 
-        form.add(roleComboBox, gbc);
+        form.add(newRoleComboBox, gbc);
 
 
         gbc.gridx = 0;
@@ -136,6 +153,17 @@ public class EditProfilePanel extends JPanel {
         gbc.gridx = 1;
 
         form.add(salarySpinner, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+
+        form.add(new JLabel("Transactions:"), gbc);
+
+        deleteTransactionsCheckBox = new JCheckBox("Delete all transactions");
+
+        gbc.gridx = 1;
+
+        form.add(deleteTransactionsCheckBox, gbc);
 
         return form;
 
