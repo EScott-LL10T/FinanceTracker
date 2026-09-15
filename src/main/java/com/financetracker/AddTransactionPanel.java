@@ -5,6 +5,7 @@ import java.awt.*;
 
 public class AddTransactionPanel extends JPanel {
     private final JFrame frame;
+
     private JSpinner amountSpinner;
     private JComboBox<String> categoryComboBox;
     private JTextField descriptionTextField;
@@ -69,8 +70,7 @@ public class AddTransactionPanel extends JPanel {
         }
         DatabaseHelper.addTransaction(amount, categoryText, description, dateString);
 
-        MainPanel mainPanel = new MainPanel(frame);
-        frame.setContentPane(mainPanel);
+        frame.setContentPane(new MainPanel(frame));
         frame.revalidate();
         frame.repaint();
 
