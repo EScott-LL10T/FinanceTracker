@@ -1,5 +1,7 @@
 package com.financetracker;
 
+import javax.swing.*;
+import java.awt.*;
 import java.time.LocalDateTime;
 
 public class Profile {
@@ -44,4 +46,6 @@ public class Profile {
     public void updateSalary(int newSalary){
         salary = newSalary;
     }
+
+
 }
