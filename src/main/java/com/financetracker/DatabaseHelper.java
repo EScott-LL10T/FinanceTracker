@@ -108,6 +108,28 @@ public class DatabaseHelper {
         return null;
     }
 
+
+    public static void updateProfile(String name, String role, double debt, double salary) {
+
+
+
+        String sql = "UPDATE profile SET name = ?, role = ?, debt = ?, salary = ? WHERE id = ? ";
+
+        try (Connection conn = connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, name);
+            stmt.setString(2, role);
+            stmt.setDouble(3, debt);
+            stmt.setDouble(4, salary);
+
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            System.out.println("SQL error, " + e.getMessage());
+        }
+    }
+
     /* ****************************************************************************************************************/
     /*                                         TRANSACTIONS TABLE                                                     */
     /* ****************************************************************************************************************/
