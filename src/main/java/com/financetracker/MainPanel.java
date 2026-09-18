@@ -1,6 +1,7 @@
 package com.financetracker;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.util.ArrayList;
 
@@ -27,7 +28,7 @@ public class MainPanel extends JPanel {
 
         // Header Panel
         JLabel headerLabel = new JLabel(profile.getName() + " Budget Dashboard", SwingConstants.CENTER);
-        headerLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        headerLabel.setFont(new Font("Arial", Font.BOLD, 30));
         add(headerLabel, BorderLayout.NORTH);
 
 
@@ -37,7 +38,7 @@ public class MainPanel extends JPanel {
                 getTransactionsPanel()
         );
 
-        splitPane.setDividerLocation(450);
+        splitPane.setDividerLocation(550);
         splitPane.setDividerSize(1);
         splitPane.setEnabled(false);
 
@@ -47,7 +48,7 @@ public class MainPanel extends JPanel {
 
         add(splitPane, BorderLayout.CENTER);
 
-        Font buttonFont = new Font("Ariel", Font.PLAIN, 14);
+        Font buttonFont = new Font("Ariel", Font.PLAIN, 16);
 
         JButton exitButton = new JButton("Exit");
         exitButton.setFont(buttonFont);
@@ -101,6 +102,7 @@ public class MainPanel extends JPanel {
 
         JFreeChart pieChart = getPieChart(dataset);
 
+
         return new ChartPanel(pieChart);
 
     }
@@ -123,6 +125,8 @@ public class MainPanel extends JPanel {
         plot.setSectionPaint("Other", Color.GRAY);
         plot.setSectionPaint("Available", new Color(128, 0, 128));
 
+        plot.setLabelFont(new Font("Ariel", Font.PLAIN, 12));
+
 
         return new JFreeChart("Budget Distribution", JFreeChart.DEFAULT_TITLE_FONT, plot, true);
     }
@@ -130,41 +134,44 @@ public class MainPanel extends JPanel {
 
     private JPanel getTransactionsPanel(){
         JPanel transactionsPanel = new JPanel();
-        Font font = new Font("Arial", Font.PLAIN, 16);
+        Font transactionsFont = new Font("Arial", Font.PLAIN, 16);
 
         double monthlySalary = (profile.getSalary() - (profile.getSalary() * 0.40)) / 12;
 
 
         transactionsPanel.setLayout(new BoxLayout(transactionsPanel, BoxLayout.Y_AXIS));
 
-        transactionsPanel.setBorder(BorderFactory.createTitledBorder("Financial Summary"));
+        TitledBorder titledBorder = BorderFactory.createTitledBorder("Financial Summary");
+        titledBorder.setTitleFont(new Font("Ariel", Font.BOLD, 20));
+
+        transactionsPanel.setBorder(titledBorder);
 
         JLabel salary = new JLabel("Salary");
-        salary.setFont(font);
+        salary.setFont(transactionsFont);
 
         String monthlySalaryFormatted = String.format("£%.2f", monthlySalary);
 
         JLabel salaryAmount = new JLabel(monthlySalaryFormatted);
-        salaryAmount.setFont(font);
+        salaryAmount.setFont(transactionsFont);
 
         JLabel totalSpent = new JLabel("Total Spent");
-        totalSpent.setFont(font);
+        totalSpent.setFont(transactionsFont);
 
         double totalSpend = 100 + 250 + 300 + 800;
         JLabel totalSpentAmount = new JLabel(String.format("£%.2f", totalSpend));
-        totalSpentAmount.setFont(font);
+        totalSpentAmount.setFont(transactionsFont);
 
         JLabel available = new JLabel("Available");
-        available.setFont(font);
+        available.setFont(transactionsFont);
 
         JLabel availableAmount = new JLabel(String.format("£%.2f", monthlySalary - 100 - 150 - 300 - 800));
-        availableAmount.setFont(font);
+        availableAmount.setFont(transactionsFont);
 
         JLabel taxed = new JLabel("tax");
-        taxed.setFont(font);
+        taxed.setFont(transactionsFont);
 
         JLabel taxedAmount = new JLabel(String.format("£%.2f", profile.getSalary() * 0.40 / 12));
-        taxedAmount.setFont(font);
+        taxedAmount.setFont(transactionsFont);
 
         transactionsPanel.add(salary);
         transactionsPanel.add(salaryAmount);

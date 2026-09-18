@@ -5,10 +5,10 @@ import java.awt.*;
 
 public class CreateProfilePanel extends JPanel{
     private final JFrame frame;
-    private final JTextField nameField;
-    private final JComboBox<String> roleComboBox;
-    private final JSpinner debtSpinner;
-    private final JSpinner salarySpinner;
+    private JTextField nameField;
+    private JComboBox<String> roleComboBox;
+    private JSpinner debtSpinner;
+    private JSpinner salarySpinner;
 
 
     public CreateProfilePanel(JFrame frame){
@@ -21,82 +21,7 @@ public class CreateProfilePanel extends JPanel{
 
         add(header, BorderLayout.NORTH);
 
-
-        JPanel form = new JPanel(new GridBagLayout());
-
-        form.setBorder(
-                BorderFactory.createCompoundBorder( BorderFactory.createLineBorder(Color.LIGHT_GRAY),
-                        BorderFactory.createEmptyBorder(25, 30, 25, 30)));
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 5, 10, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 0;
-
-        form.add(new JLabel("Name:"), gbc);
-
-        nameField = new JTextField();
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-
-        form.add(nameField, gbc);
-
-        // Role
-        gbc.gridx = 0;
-        gbc.gridy++;
-
-        form.add(new JLabel("Status:"), gbc);
-
-        roleComboBox = new JComboBox<>(
-                new String[]{"Employed", "Student"}
-        );
-
-        gbc.gridx = 1;
-
-        form.add(roleComboBox, gbc);
-
-        // Debt
-        gbc.gridx = 0;
-        gbc.gridy++;
-
-        form.add(new JLabel("Debt:"), gbc);
-
-        debtSpinner = new JSpinner(
-                new SpinnerNumberModel(
-                        0.0,
-                        0.0,
-                        10000000.0,
-                        1000.0
-                )
-        );
-
-        gbc.gridx = 1;
-
-        form.add(debtSpinner, gbc);
-
-        // Salary
-        gbc.gridx = 0;
-        gbc.gridy++;
-
-        form.add(new JLabel("Annual Salary:"), gbc);
-
-        salarySpinner = new JSpinner(
-                new SpinnerNumberModel(
-                        0.0,
-                        0.0,
-                        10000000.0,
-                        1000.0
-                )
-        );
-
-        gbc.gridx = 1;
-
-        form.add(salarySpinner, gbc);
-
-        add(form, BorderLayout.CENTER);
+        add(getForm(), BorderLayout.CENTER);
 
         // Button
         JButton continueButton = new JButton("Continue");
@@ -151,6 +76,106 @@ public class CreateProfilePanel extends JPanel{
         frame.setContentPane(new MainPanel(frame));
         frame.revalidate();
         frame.repaint();
+    }
+
+    private JPanel getForm(){
+        JPanel form = new JPanel(new GridBagLayout());
+
+        form.setBorder(
+                BorderFactory.createCompoundBorder( BorderFactory.createLineBorder(Color.LIGHT_GRAY),
+                        BorderFactory.createEmptyBorder(25, 30, 25, 30)));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 5, 10, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0;
+
+        Font formFont = new Font("Ariel", Font.PLAIN, 14);
+
+        JLabel nameLabel = new JLabel("Name:");
+        nameLabel.setFont(formFont);
+
+        form.add(nameLabel, gbc);
+
+        nameField = new JTextField();
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+
+        nameField.setFont(formFont);
+
+        form.add(nameField, gbc);
+
+        // Role
+        gbc.gridx = 0;
+        gbc.gridy++;
+
+        JLabel roleLabel = new JLabel("Status:");
+        roleLabel.setFont(formFont);
+
+        form.add(roleLabel, gbc);
+
+        roleComboBox = new JComboBox<>(
+                new String[]{"Employed", "Student"}
+        );
+
+        gbc.gridx = 1;
+
+        roleComboBox.setFont(formFont);
+
+        form.add(roleComboBox, gbc);
+
+        // Debt
+        gbc.gridx = 0;
+        gbc.gridy++;
+
+        JLabel debtLabel = new JLabel("Debt:");
+        debtLabel.setFont(formFont);
+
+        form.add(debtLabel, gbc);
+
+        debtSpinner = new JSpinner(
+                new SpinnerNumberModel(
+                        0.0,
+                        0.0,
+                        10000000.0,
+                        1000.0
+                )
+        );
+
+        gbc.gridx = 1;
+
+        debtSpinner.setFont(formFont);
+
+        form.add(debtSpinner, gbc);
+
+        // Salary
+        gbc.gridx = 0;
+        gbc.gridy++;
+
+        JLabel salaryLabel = new JLabel("Annual Salary:");
+
+        salaryLabel.setFont(formFont);
+
+        form.add(salaryLabel, gbc);
+
+        salarySpinner = new JSpinner(
+                new SpinnerNumberModel(
+                        0.0,
+                        0.0,
+                        10000000.0,
+                        1000.0
+                )
+        );
+
+        salarySpinner.setFont(formFont);
+
+        gbc.gridx = 1;
+
+        form.add(salarySpinner, gbc);
+        return form;
     }
 
 }

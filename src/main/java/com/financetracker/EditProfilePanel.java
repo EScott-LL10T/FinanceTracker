@@ -18,9 +18,9 @@ public class EditProfilePanel extends JPanel {
 
         setLayout(new BorderLayout());
 
-        Font buttonFont = new Font("Ariel", Font.PLAIN, 14);
+        Font buttonFont = new Font("Ariel", Font.PLAIN, 16);
 
-        Font titleFont = new Font("SansSerif", Font.BOLD, 26);
+        Font titleFont = new Font("Ariel", Font.BOLD, 30);
 
         assert profile != null;
         JLabel title = new JLabel("Edit Profile " + profile.getName());
@@ -104,7 +104,7 @@ public class EditProfilePanel extends JPanel {
                         BorderFactory.createEmptyBorder(25, 30, 25, 30))
         );
 
-        Font labelFont = new Font("Ariel", Font.PLAIN, 20);
+        Font formFont = new Font("Ariel", Font.PLAIN, 14);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 5, 10, 5);
@@ -115,11 +115,12 @@ public class EditProfilePanel extends JPanel {
         gbc.weightx = 0;
 
         JLabel nameLabel = new JLabel("Name:");
-        nameLabel.setFont(labelFont);
+        nameLabel.setFont(formFont);
 
         form.add(nameLabel, gbc);
 
         nameField = new JTextField(profile.getName());
+        nameField.setFont(formFont);
         gbc.gridx = 1;
         gbc.weightx = 1;
 
@@ -128,7 +129,10 @@ public class EditProfilePanel extends JPanel {
         gbc.gridx = 0;
         gbc.gridy++;
 
-        form.add(new JLabel("Status:"), gbc);
+        JLabel statusLabel = new JLabel("Status:");
+        statusLabel.setFont(formFont);
+
+        form.add(statusLabel, gbc);
 
         if(profile.getRole().equals("Employed")){
             newRoleComboBox = new JComboBox<>(
@@ -139,6 +143,7 @@ public class EditProfilePanel extends JPanel {
                     new String[]{"Student", "Employed"}
             );
         }
+        newRoleComboBox.setFont(formFont);
 
         gbc.gridx = 1;
 
@@ -148,7 +153,10 @@ public class EditProfilePanel extends JPanel {
         gbc.gridx = 0;
         gbc.gridy++;
 
-        form.add(new JLabel("Debt:"), gbc);
+        JLabel debtLabel = new JLabel("Debt:");
+        debtLabel.setFont(formFont);
+
+        form.add(debtLabel, gbc);
 
         debtSpinner = new JSpinner(
                 new SpinnerNumberModel(
@@ -158,6 +166,7 @@ public class EditProfilePanel extends JPanel {
                         1000.0
                 )
         );
+        debtSpinner.setFont(formFont);
 
         gbc.gridx = 1;
 
@@ -166,7 +175,10 @@ public class EditProfilePanel extends JPanel {
         gbc.gridx = 0;
         gbc.gridy++;
 
-        form.add(new JLabel("Annual Salary:"), gbc);
+        JLabel salaryLabel = new JLabel("Annual Salary:");
+        salaryLabel.setFont(formFont);
+
+        form.add(salaryLabel, gbc);
 
         salarySpinner = new JSpinner(
                 new SpinnerNumberModel(
@@ -176,6 +188,7 @@ public class EditProfilePanel extends JPanel {
                         1000.0
                 )
         );
+        salarySpinner.setFont(formFont);
 
         gbc.gridx = 1;
 
@@ -184,9 +197,13 @@ public class EditProfilePanel extends JPanel {
         gbc.gridx = 0;
         gbc.gridy++;
 
-        form.add(new JLabel("Transactions:"), gbc);
+        JLabel transactionsLabel = new JLabel("Transactions:");
+        transactionsLabel.setFont(formFont);
+
+        form.add(transactionsLabel, gbc);
 
         deleteTransactionsCheckBox = new JCheckBox("Delete all transactions");
+        deleteTransactionsCheckBox.setFont(formFont);
 
         gbc.gridx = 1;
 

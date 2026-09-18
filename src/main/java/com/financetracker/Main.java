@@ -13,7 +13,7 @@ public class Main {
         JFrame frame = new JFrame();
 
         frame.setTitle("Finance Tracker");
-        frame.setSize(600, 600);
+        frame.setSize(800, 800);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
 

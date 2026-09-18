@@ -17,9 +17,9 @@ public class AddTransactionPanel extends JPanel {
 
         setLayout(new BorderLayout());
 
-        Font buttonFont = new Font("Ariel", Font.PLAIN, 14);
+        Font buttonFont = new Font("Ariel", Font.PLAIN, 16);
 
-        Font titleFont = new Font("SansSerif", Font.BOLD, 26);
+        Font titleFont = new Font("SansSerif", Font.BOLD, 30);
 
 
         assert profile != null;
@@ -91,42 +91,61 @@ public class AddTransactionPanel extends JPanel {
         gbc.gridy = 0;
         gbc.weightx = 0;
 
-        form.add(new JLabel("Cost £:"), gbc);
+        Font formFont = new Font("Ariel", Font.PLAIN, 14);
+
+        JLabel costLabel = new JLabel("Cost £:");
+        costLabel.setFont(formFont);
+
+        form.add(costLabel, gbc);
 
         amountSpinner = new JSpinner(new SpinnerNumberModel(0.0, 0.0, 10000000.0,
                 10.0));
         gbc.gridx = 1;
         gbc.weightx = 1;
+        amountSpinner.setFont(formFont);
 
         form.add(amountSpinner, gbc);
 
         gbc.gridx = 0;
         gbc.gridy++;
 
-        form.add(new JLabel("Category:"), gbc);
+        JLabel categoryLabel = new JLabel("Category:");
+        categoryLabel.setFont(formFont);
+
+        form.add(categoryLabel, gbc);
 
         categoryComboBox = new JComboBox<>(new String[]{"Entertainment", "Rent", "Food", "Transport", "Shopping",
                 "Other"});
 
         gbc.gridx = 1;
 
+        categoryComboBox.setFont(formFont);
+
         form.add(categoryComboBox, gbc);
 
         gbc.gridx = 0;
         gbc.gridy++;
 
-        form.add(new JLabel("Description:"), gbc);
+        JLabel descriptionLabel = new JLabel("Description:");
+        descriptionLabel.setFont(formFont);
+
+        form.add(descriptionLabel, gbc);
 
         descriptionTextField = new JTextField();
 
         gbc.gridx = 1;
+
+        descriptionTextField.setFont(formFont);
 
         form.add(descriptionTextField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy++;
 
-        form.add(new JLabel("Date of transaction:"), gbc);
+        JLabel dateLabel = new JLabel("Date of transaction:");
+        dateLabel.setFont(formFont);
+
+        form.add(dateLabel, gbc);
 
         SpinnerDateModel dateModel = new SpinnerDateModel();
 
@@ -137,6 +156,8 @@ public class AddTransactionPanel extends JPanel {
         dateSpinner.setEditor(dateEditor);
 
         gbc.gridx = 1;
+
+        dateSpinner.setFont(formFont);
 
         form.add(dateSpinner, gbc);
         return form;
