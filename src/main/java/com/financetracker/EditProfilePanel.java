@@ -49,7 +49,28 @@ public class EditProfilePanel extends JPanel {
             frame.repaint();
         });
 
-        addTransactionButton.addActionListener(e -> editProfile());
+        addTransactionButton.addActionListener(e -> {
+            String message = "Are you sure you want to update your profile?";
+            boolean deleteTransactions = deleteTransactionsCheckBox.isSelected();
+            if(deleteTransactions){
+                message = message + " All your transaction history will be deleted.";
+            }
+            int result = JOptionPane.showConfirmDialog(
+                    frame,
+                    message,
+                    "Confirm Profile Update",
+                    JOptionPane.YES_NO_OPTION
+            );
+
+            if (result == JOptionPane.YES_OPTION) {
+
+                editProfile();
+
+                if (deleteTransactions) {
+                    DatabaseHelper.deleteTransactions();
+                }
+            }
+        });
     }
 
     private void editProfile(){
@@ -80,7 +101,10 @@ public class EditProfilePanel extends JPanel {
 
         form.setBorder(
                 BorderFactory.createCompoundBorder( BorderFactory.createLineBorder(Color.LIGHT_GRAY),
-                        BorderFactory.createEmptyBorder(25, 30, 25, 30)));
+                        BorderFactory.createEmptyBorder(25, 30, 25, 30))
+        );
+
+        Font labelFont = new Font("Ariel", Font.PLAIN, 20);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 5, 10, 5);
@@ -90,7 +114,10 @@ public class EditProfilePanel extends JPanel {
         gbc.gridy = 0;
         gbc.weightx = 0;
 
-        form.add(new JLabel("name: "), gbc);
+        JLabel nameLabel = new JLabel("Name:");
+        nameLabel.setFont(labelFont);
+
+        form.add(nameLabel, gbc);
 
         nameField = new JTextField(profile.getName());
         gbc.gridx = 1;
