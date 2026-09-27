@@ -53,7 +53,7 @@ public class MainPanel extends JPanel {
         JButton exitButton = new JButton("Exit");
         exitButton.setFont(buttonFont);
 
-        JButton addTransactionButton = new JButton("Add Transaction.");
+        JButton addTransactionButton = new JButton("Add Transaction");
         addTransactionButton.setFont(buttonFont);
 
         JButton editProfileButton = new JButton("Edit Profile");

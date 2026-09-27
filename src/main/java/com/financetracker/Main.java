@@ -2,9 +2,11 @@ package com.financetracker;
 
 import javax.swing.*;
 
-public class Main {
+public class Main{
     public static void main(String[] args) {
         // check if new user
+
+
 
         // Initialize SQLite Database
         DatabaseHelper.initializeDatabase();
