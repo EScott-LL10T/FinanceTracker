@@ -67,13 +67,14 @@ public class EditProfilePanel extends JPanel {
                 editProfile();
 
                 if (deleteTransactions) {
-                    DatabaseHelper.deleteTransactions();
+                    DatabaseHelper.deleteTransactions(profile.getId());
                 }
             }
         });
     }
 
     private void editProfile(){
+        int id = profile.getId();
         String name = nameField.getText().trim();
         if(name.isEmpty() || name.length() > 2253){ // longest name currently is 2253.
             return;
@@ -88,7 +89,7 @@ public class EditProfilePanel extends JPanel {
         double debt = (double) debtSpinner.getValue();
         double salary = (double) salarySpinner.getValue();
 
-        DatabaseHelper.updateProfile(name, role, debt, salary);
+        DatabaseHelper.updateProfile(id,name, role, debt, salary);
 
 
         frame.setContentPane(new MainPanel(frame));
