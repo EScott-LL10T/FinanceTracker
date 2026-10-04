@@ -8,7 +8,9 @@ public class CreateProfilePanel extends JPanel{
     private JTextField nameField;
     private JComboBox<String> roleComboBox;
     private JSpinner debtSpinner;
+    private JLabel debtLabel;
     private JSpinner salarySpinner;
+    private JLabel salaryLabel;
 
 
     public CreateProfilePanel(JFrame frame){
@@ -30,6 +32,17 @@ public class CreateProfilePanel extends JPanel{
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(continueButton);
 
+        roleComboBox.addActionListener(e ->{
+            if (roleComboBox.getSelectedItem() == null || !roleComboBox.getSelectedItem().equals("Student")){
+                salaryLabel.setVisible(true);
+                debtLabel.setVisible(true);
+                debtSpinner.setVisible(true);
+            }else{
+                salaryLabel.setText("Student finance payment:");
+                debtLabel.setVisible(false);
+                debtSpinner.setVisible(false);
+            }
+        });
 
         add(buttonPanel, BorderLayout.SOUTH);
 
@@ -71,7 +84,11 @@ public class CreateProfilePanel extends JPanel{
         double debt = (double) debtSpinner.getValue();
         double salary = (double) salarySpinner.getValue();
 
-        DatabaseHelper.createNewUser(name, role, debt, salary);
+        if(role.equals("Student")){
+            DatabaseHelper.createNewUser(name, role, 0, salary);
+        }else{
+            DatabaseHelper.createNewUser(name, role, debt, salary);
+        }
 
         frame.setContentPane(new MainPanel(frame));
         frame.revalidate();
@@ -131,7 +148,7 @@ public class CreateProfilePanel extends JPanel{
         gbc.gridx = 0;
         gbc.gridy++;
 
-        JLabel debtLabel = new JLabel("Debt:");
+        debtLabel = new JLabel("Debt:");
         debtLabel.setFont(formFont);
 
         form.add(debtLabel, gbc);
@@ -155,7 +172,7 @@ public class CreateProfilePanel extends JPanel{
         gbc.gridx = 0;
         gbc.gridy++;
 
-        JLabel salaryLabel = new JLabel("Annual Salary:");
+        salaryLabel = new JLabel("Annual Salary:");
 
         salaryLabel.setFont(formFont);
 
