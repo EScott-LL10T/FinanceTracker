@@ -4,9 +4,6 @@ import javax.swing.*;
 
 public class Main{
     public static void main(String[] args) {
-        // check if new user
-
-
 
         // Initialize SQLite Database
         DatabaseHelper.initializeDatabase();
@@ -15,7 +12,7 @@ public class Main{
         JFrame frame = new JFrame();
 
         frame.setTitle("Finance Tracker");
-        frame.setSize(800, 800);
+        frame.setSize(700, 700);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
 

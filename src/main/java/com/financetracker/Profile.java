@@ -1,22 +1,22 @@
 package com.financetracker;
 
-import javax.swing.*;
-import java.awt.*;
 import java.time.LocalDateTime;
 
 public class Profile {
     private final String name;
     private final String role;
-    private double debt;
-    private double salary;
+    private final double debt;
+    private final double salary;
     private final String timeOfAccountCreation;
+    private final int id;
 
-    public Profile(String name, String role, double debt, double salary, String timeOfAccountCreation){
+    public Profile(String name, String role, double debt, double salary, String timeOfAccountCreation, int id){
         this.name = name;
         this.role = role;
         this.debt = debt;
         this.salary = salary;
         this.timeOfAccountCreation = timeOfAccountCreation;
+        this.id = id;
     }
 
     public String getName(){
@@ -39,13 +39,7 @@ public class Profile {
         return LocalDateTime.parse(timeOfAccountCreation);
     }
 
-    public void updateDebt(int amount){
-        debt -= amount;
+    public int getId() {
+        return id;
     }
-
-    public void updateSalary(int newSalary){
-        salary = newSalary;
-    }
-
-
 }
