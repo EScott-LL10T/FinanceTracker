@@ -1,5 +1,6 @@
 package com.financetracker;
 
+
 import javax.swing.*;
 import java.awt.*;
 

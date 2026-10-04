@@ -1,5 +1,6 @@
 package com.financetracker;
 
+
 import java.time.LocalDateTime;
 
 public class Profile {
