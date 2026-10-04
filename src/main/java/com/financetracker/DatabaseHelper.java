@@ -60,6 +60,13 @@ public class DatabaseHelper {
         }
     }
 
+    /* ************************************************************************************************************** */
+    /*                                               Roles TABLE                                                      */
+    /* ************************************************************************************************************** */
+
+
+
+
     public static void insertDefaultRoles() {
 
         String sql = "INSERT OR IGNORE INTO roles (name) VALUES (?)";
@@ -77,10 +84,6 @@ public class DatabaseHelper {
             System.out.println("SQL error, " + e.getMessage());
         }
     }
-
-    /* ****************************************************************************************************************/
-    /*                                               PROFILE TABLE                                                    */
-    /* ****************************************************************************************************************/
 
     public static int getRoleId(String role) {
         String sql = "SELECT id FROM roles WHERE name = ?";
@@ -102,6 +105,69 @@ public class DatabaseHelper {
 
         return -1;
     }
+
+
+    /* ************************************************************************************************************** */
+    /*                                               Category TABLE                                                   */
+    /* ************************************************************************************************************** */
+
+
+    public static int getCategoryId(String category) {
+
+        String sql = "SELECT id FROM categories WHERE name = ?";
+
+        try (Connection conn = connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, category);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+
+                if (rs.next()) {
+                    return rs.getInt("id");
+                }
+            }
+
+            return addCategory(category);
+
+        } catch (SQLException e) {
+            System.out.println("SQL error, " + e.getMessage());
+        }
+
+        return -1;
+    }
+
+    public static int addCategory(String category) {
+
+        String sql = "INSERT INTO categories (name) VALUES (?)";
+
+        try (Connection conn = connect();
+             PreparedStatement stmt = conn.prepareStatement(
+                     sql,
+                     Statement.RETURN_GENERATED_KEYS)) {
+
+            stmt.setString(1, category);
+            stmt.executeUpdate();
+
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+
+        } catch (SQLException e) {
+            System.out.println("SQL error, " + e.getMessage());
+        }
+
+        return -1;
+    }
+
+
+    /* ************************************************************************************************************** */
+    /*                                               PROFILE TABLE                                                    */
+    /* ************************************************************************************************************** */
+
+
 
     public static void createNewUser(String name, String role, double debt, double salary){
         int roleId = getRoleId(role);
@@ -167,9 +233,8 @@ public class DatabaseHelper {
                 double debt = rs.getDouble("debt");
                 double salary = rs.getDouble("salary");
                 int id = rs.getInt("id");
-                String timeOfAccountCreation =
-                        rs.getString("timeOfAccountCreation");
-                return new Profile(name, role, debt, salary, timeOfAccountCreation, id);
+                String createdAt = rs.getString("createdAt");
+                return new Profile(name, role, debt, salary, createdAt, id);
             }
 
         } catch (SQLException e) {
@@ -212,60 +277,9 @@ public class DatabaseHelper {
     /* ****************************************************************************************************************/
 
 
-    public static int getCategoryId(String category) {
-
-        String sql = "SELECT id FROM categories WHERE name = ?";
-
-        try (Connection conn = connect();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, category);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-
-                if (rs.next()) {
-                    return rs.getInt("id");
-                }
-            }
-
-            return addCategory(category);
-
-        } catch (SQLException e) {
-            System.out.println("SQL error, " + e.getMessage());
-        }
-
-        return -1;
-    }
-
-    public static int addCategory(String category) {
-
-        String sql = "INSERT INTO categories (name) VALUES (?)";
-
-        try (Connection conn = connect();
-             PreparedStatement stmt = conn.prepareStatement(
-                     sql,
-                     Statement.RETURN_GENERATED_KEYS)) {
-
-            stmt.setString(1, category);
-            stmt.executeUpdate();
-
-            try (ResultSet rs = stmt.getGeneratedKeys()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-            }
-
-        } catch (SQLException e) {
-            System.out.println("SQL error, " + e.getMessage());
-        }
-
-        return -1;
-    }
 
 
-
-
-    public static void addTransaction(double amount, String category, String description, String createdAt){
+    public static void addTransaction(double amount, String category, String description, String createdAt, int profileId){
 
         int categoryId = getCategoryId(category);
 
@@ -281,10 +295,10 @@ public class DatabaseHelper {
         try (Connection conn = DatabaseHelper.connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setDouble(1, amount);
-            stmt.setInt(2, categoryId);
-            stmt.setString(3, description);
-            stmt.setString(4, createdAt);
+            stmt.setInt(1, profileId);
+            stmt.setDouble(2, amount);
+            stmt.setInt(3, categoryId);
+            stmt.setString(4, description);
             stmt.setString(5, createdAt);
 
             stmt.executeUpdate();
@@ -298,7 +312,8 @@ public class DatabaseHelper {
     public static ArrayList<Transaction> getTransactions(){
         ArrayList<Transaction> transactions = new ArrayList<>();
         String sql = """
-            SELECT transactions.amount,
+            SELECT transactions.profileId,
+                   transactions.amount,
                    categories.name AS category,
                    transactions.description,
                    transactions.createdAt
@@ -311,11 +326,12 @@ public class DatabaseHelper {
              ResultSet rs = stmt.executeQuery()) {
 
             while(rs.next()) {
+                int id = rs.getInt("profileId");
                 double amount = rs.getDouble("amount");
                 String category = rs.getString("category");
                 String description = rs.getString("description");
-                String dateTime = rs.getString("dateTime");
-                transactions.add(new Transaction(amount, category, description, dateTime));
+                String createdAt = rs.getString("createdAt");
+                transactions.add(new Transaction(id, amount, category, description, createdAt));
             }
 
         } catch (SQLException e) {

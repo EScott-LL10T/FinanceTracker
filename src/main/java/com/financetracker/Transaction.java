@@ -7,8 +7,10 @@ public class Transaction {
     private final String category;
     private final String description;
     private final String dateTime;
+    private final int profileId;
 
-    public Transaction(double amount, String category, String description, String dateTime){
+    public Transaction(int profileId,double amount, String category, String description, String dateTime){
+        this.profileId = profileId;
         this.amount = amount;
         this.category = category;
         this.description = description;
@@ -29,5 +31,9 @@ public class Transaction {
 
     public LocalDateTime getTimeOfTransaction(){
         return  LocalDateTime.parse(dateTime);
+    }
+
+    public int getProfileId(){
+        return profileId;
     }
 }

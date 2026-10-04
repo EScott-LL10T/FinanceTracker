@@ -10,10 +10,11 @@ public class AddTransactionPanel extends JPanel {
     private JComboBox<String> categoryComboBox;
     private JTextField descriptionTextField;
     private JSpinner dateSpinner;
+    private final Profile profile;
 
     public AddTransactionPanel(JFrame frame, MainPanel mainPanel){
         this.frame = frame;
-        Profile profile = DatabaseHelper.getProfile();
+        this.profile = DatabaseHelper.getProfile();
 
         setLayout(new BorderLayout());
 
@@ -68,7 +69,7 @@ public class AddTransactionPanel extends JPanel {
         if(dateString == null){
             return;
         }
-        DatabaseHelper.addTransaction(amount, categoryText, description, dateString);
+        DatabaseHelper.addTransaction(amount, categoryText, description, dateString, profile.getId());
 
         frame.setContentPane(new MainPanel(frame));
         frame.revalidate();
