@@ -310,29 +310,30 @@ public class DatabaseHelper {
     }
 
 
-    public static ArrayList<Transaction> getTransactions(){
+    public static ArrayList<Transaction> getTransactions(int profileId){
         ArrayList<Transaction> transactions = new ArrayList<>();
         String sql = """
-            SELECT transactions.profileId,
-                   transactions.amount,
-                   categories.name AS category,
-                   transactions.description,
-                   transactions.createdAt
-            FROM transactions
-            JOIN categories
-                ON transactions.categoryId = categories.id
-            """;
+        SELECT t.amount,
+               c.name AS category,
+               t.description,
+               t.createdAt
+        FROM transactions t
+        JOIN categories c ON t.categoryId = c.id
+        WHERE t.profileId = ?;
+        """;
         try (Connection conn = DatabaseHelper.connect();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, profileId);
+
+            ResultSet rs = stmt.executeQuery();
 
             while(rs.next()) {
-                int id = rs.getInt("profileId");
                 double amount = rs.getDouble("amount");
                 String category = rs.getString("category");
                 String description = rs.getString("description");
                 String createdAt = rs.getString("createdAt");
-                transactions.add(new Transaction(id, amount, category, description, createdAt));
+                transactions.add(new Transaction(amount, category, description, createdAt));
             }
 
         } catch (SQLException e) {

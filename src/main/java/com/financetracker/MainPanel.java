@@ -24,7 +24,7 @@ public class MainPanel extends JPanel {
         if(profile == null){
             return;
         }
-        transactions = DatabaseHelper.getTransactions();
+        transactions = DatabaseHelper.getTransactions(profile.getId());
 
         // Main layout
         setLayout(new BorderLayout());
@@ -34,28 +34,7 @@ public class MainPanel extends JPanel {
         headerLabel.setFont(new Font("Arial", Font.BOLD, 30));
         add(headerLabel, BorderLayout.NORTH);
 
-        JSplitPane splitPane;
-        if(profile.getRole().equals("Employed")) {
-            splitPane = new JSplitPane(
-                    JSplitPane.HORIZONTAL_SPLIT,
-                    getPieChartPanel(),
-                    getTransactionsEmployedPanel()
-            );
-        }else{
-            splitPane = new JSplitPane(
-                    JSplitPane.HORIZONTAL_SPLIT,
-                    getPieChartPanel(),
-                    getTransactionsStudentPanel()
-            );
-        }
-
-        splitPane.setDividerLocation(450);
-        splitPane.setDividerSize(1);
-        splitPane.setEnabled(false);
-
-        splitPane.setOneTouchExpandable(false);
-
-        splitPane.setResizeWeight(0.7);
+        JSplitPane splitPane = getSplitPane();
 
         add(splitPane, BorderLayout.CENTER);
 
@@ -88,6 +67,32 @@ public class MainPanel extends JPanel {
             setNewFrameContent(frame, new EditProfilePanel(frame, this))
         );
 
+    }
+
+    private JSplitPane getSplitPane(){
+        JSplitPane splitPane;
+        if(profile.getRole().equals("Employed")) {
+            splitPane = new JSplitPane(
+                    JSplitPane.HORIZONTAL_SPLIT,
+                    getPieChartPanel(),
+                    getTransactionsEmployedPanel()
+            );
+        }else{
+            splitPane = new JSplitPane(
+                    JSplitPane.HORIZONTAL_SPLIT,
+                    getPieChartPanel(),
+                    getTransactionsStudentPanel()
+            );
+        }
+
+        splitPane.setDividerLocation(450);
+        splitPane.setDividerSize(1);
+        splitPane.setEnabled(false);
+
+        splitPane.setOneTouchExpandable(false);
+
+        splitPane.setResizeWeight(0.7);
+        return splitPane;
     }
 
     private JPanel getPieChartPanel() {
