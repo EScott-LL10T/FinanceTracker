@@ -14,39 +14,45 @@ public class DatabaseHelper {
     }
 
     public static void initializeDatabase() {
-        String createTableSQL =
-                "CREATE TABLE IF NOT EXISTS transactions ("
-                + " id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + " profileId INTEGER NOT NULL,"
-                + " amount REAL NOT NULL,"
-                + " categoryId INTEGER NOT NULL,"
-                + " description TEXT NOT NULL,"
-                + " createdAt TEXT NOT NULL,"
-                + " FOREIGN KEY (profileId) REFERENCES profile(id),"
-                + " FOREIGN KEY (categoryId) REFERENCES categories(id)"
-                + ");";
-        String createUsersTableSQL =
-                "CREATE TABLE IF NOT EXISTS profile ("
-                + " id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + " name TEXT NOT NULL,"
-                + " roleId INTEGER NOT NULL," // role will be student/ employed.
-                + " debt REAL not NULL DEFAULT 0,"
-                + " salary REAL not NULL,"
-                + " createdAt TEXT NOT NULL,"
-                + " FOREIGN KEY (roleId) REFERENCES roles(id)"
-                + ");";
 
-        String createCategoryTableSQL =
-                "CREATE TABLE IF NOT EXISTS categories ("
-                + " id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + " name TEXT NOT NULL UNIQUE"
-                + ");";
+        String createTableSQL = """
+        CREATE TABLE IF NOT EXISTS transactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        profileId INTEGER NOT NULL,
+        amount REAL NOT NULL,
+        categoryId INTEGER NOT NULL,
+        description TEXT NOT NULL,
+        createdAt TEXT NOT NULL,
+        FOREIGN KEY (profileId) REFERENCES profile(id),
+        FOREIGN KEY (categoryId) REFERENCES categories(id)
+        );
+        """;
 
-        String createRoleTableSQL =
-                "CREATE TABLE IF NOT EXISTS roles ("
-                + " id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + " name TEXT NOT NULL UNIQUE"
-                + ");";
+        String createUsersTableSQL = """
+        CREATE TABLE IF NOT EXISTS profile (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        roleId INTEGER NOT NULL,
+        debt REAL not NULL DEFAULT 0,
+        salary REAL not NULL,
+        createdAt TEXT NOT NULL,
+        FOREIGN KEY (roleId) REFERENCES roles(id)
+        );
+        """;
+
+        String createCategoryTableSQL = """
+        CREATE TABLE IF NOT EXISTS categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE
+        );
+        """;
+
+        String createRoleTableSQL = """
+        CREATE TABLE IF NOT EXISTS roles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE
+        );
+        """;
 
         try (Connection conn = connect();
              Statement stmt = conn.createStatement()) {
@@ -178,9 +184,10 @@ public class DatabaseHelper {
             return;
         }
 
-        String sql = "INSERT INTO profile "
-                + "(name, roleId, debt, salary, createdAt) "
-                + "VALUES (?, ?, ?, ?, ?)";
+        String sql = """
+        INSERT INTO profile (name, roleId, debt, salary, createdAt)
+        VALUES (?, ?, ?, ?, ?)
+        """;
 
         try (Connection conn = DatabaseHelper.connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -289,10 +296,11 @@ public class DatabaseHelper {
             return;
         }
 
+        String sql = """
+        INSERT INTO transactions (profileId, amount, categoryId, description, createdAt)
+        VALUES (?, ?, ?, ?, ?)
+        """;
 
-        String sql = "INSERT INTO transactions "
-                + "(profileId, amount, categoryId, description, createdAt) "
-                + "VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseHelper.connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
