@@ -4,6 +4,8 @@ package com.financetracker;
 
 import javax.swing.*;
 import java.awt.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class AddTransactionPanel extends JPanel {
     private final JFrame frame;
@@ -67,10 +69,15 @@ public class AddTransactionPanel extends JPanel {
         if(description.isEmpty() || description.length() > 1000){
             return;
         }
-        String dateString = dateSpinner.getValue().toString();
-        if(dateString == null){
+        Date date = (Date) dateSpinner.getValue();
+        if(date == null){
             return;
         }
+
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+
+        String dateString = formatter.format(date);
+
         DatabaseHelper.addTransaction(amount, categoryText, description, dateString, profile.getId());
 
         frame.setContentPane(new MainPanel(frame));
