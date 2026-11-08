@@ -43,11 +43,11 @@ public class Profile {
         // £50,271–£125,140	40%
         // Over £125,140	45%
 
-        if(salary <= 12570 || role.equals("Student")){
-            return 0;
-        }else if(salary <= 50270){
+        if(salary <= 12570.0 || role.equals("Student")){
+            return 0.0;
+        }else if(salary <= 50270.0){
             return 0.2;
-        }else if(salary <= 125140){
+        }else if(salary <= 125140.0){
             return 0.4;
         }else{
             return 0.45;
