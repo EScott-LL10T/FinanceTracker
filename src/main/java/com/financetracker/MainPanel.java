@@ -100,9 +100,6 @@ public class MainPanel extends JPanel {
         }
         double totalSpent = 0.0;
         for (Transaction transaction : monthlyTransactions) {
-            if(transaction.getCategory().equals("Student Loan Payment")){
-                continue;
-            }
             double amount = transaction.getAmount();
             String category = transaction.getCategory();
 
