@@ -1,5 +1,10 @@
 package com.financetracker;
 
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+
+
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -8,43 +13,48 @@ class ProfileTest {
     // String name, String role, double debt, double salary, String timeOfAccountCreation, int id
     String d = LocalDateTime.now().toString();
     Profile p = new Profile("Elliot", "Student", 0.0, 4000.0, d, 1);
-    Profile pe1 = new Profile("Elliot", "Employed", 0.0, 40000, d, 1);
-    Profile pe2 = new Profile("Elliot", "Employed", 0.0, 100000, d, 1);
 
-    @org.junit.jupiter.api.Test
+    @Test
     void getName(){
         assertEquals("Elliot", p.getName());
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void getRole(){
         assertEquals("Student", p.getRole());
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void getDebt(){
         assertEquals(0.0, p.getDebt());
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void getSalary(){
         assertEquals(4000.0, p.getSalary());
     }
 
+    @ParameterizedTest
+    @CsvSource({
+            "Elliot, Student, 0.0, 12570.0, 2026-11-08T19:10:00, 1, 0.0",
+            "Elliot, Student, 0.0, 15000.0, 2026-11-08T19:10:00, 1, 0.0",
+            "Elliot, Employed, 0.0, 12570.0, 2026-11-08T19:10:00, 1, 0.0",
+            "Elliot, Employed, 0.0, 50270.0, 2026-11-08T19:10:00, 1, 0.2",
+            "Elliot, Employed, 0.0, 125140.0, 2026-11-08T19:10:00, 1, 0.4",
+            "Elliot, Employed, 0.0, 125141.0, 2026-11-08T19:10:00, 1, 0.45"
+    })
+    void calculateTaxParameterized(String n, String r, double d, double s, String dt, int id, double expected){
+        Profile pe = new Profile(n, r, d, s, dt, id);
+        assertEquals(expected, pe.calculateTax());
 
-    @org.junit.jupiter.api.Test
-    void getCalculateTax(){
-        assertEquals(0.0, p.calculateTax());
-        assertEquals(0.2, pe1.calculateTax());
-        assertEquals(0.4, pe2.calculateTax());
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void getTimeOfAccountCreation(){
         assertEquals(LocalDateTime.parse(d), p.getTimeOfAccountCreation());
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void getId(){
         assertEquals(1, p.getId());
     }
