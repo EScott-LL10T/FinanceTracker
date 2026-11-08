@@ -13,6 +13,9 @@ public class EditProfilePanel extends JPanel {
     private JSpinner debtSpinner;
     private JSpinner salarySpinner;
 
+    private JLabel debtLabel;
+    private JLabel salaryLabel;
+
     public EditProfilePanel(JFrame frame, MainPanel mainPanel){
         this.frame = frame;
         this.profile = DatabaseHelper.getProfile();
@@ -41,6 +44,18 @@ public class EditProfilePanel extends JPanel {
         JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 80, 80));
         buttonPanel.add(cancelButton);
         buttonPanel.add(editProfileButton);
+
+        newRoleComboBox.addActionListener(e ->{
+            if (newRoleComboBox.getSelectedItem() == null || !newRoleComboBox.getSelectedItem().equals("Student")){
+                salaryLabel.setVisible(true);
+                debtLabel.setVisible(true);
+                debtSpinner.setVisible(true);
+            }else{
+                salaryLabel.setText("Student finance payment:");
+                debtLabel.setVisible(false);
+                debtSpinner.setVisible(false);
+            }
+        });
 
         add(buttonPanel, BorderLayout.SOUTH);
 
@@ -159,7 +174,7 @@ public class EditProfilePanel extends JPanel {
         gbc.gridx = 0;
         gbc.gridy++;
 
-        JLabel debtLabel = new JLabel("Debt:");
+        debtLabel = new JLabel("Debt:");
         debtLabel.setFont(formFont);
 
         form.add(debtLabel, gbc);
@@ -181,7 +196,7 @@ public class EditProfilePanel extends JPanel {
         gbc.gridx = 0;
         gbc.gridy++;
 
-        JLabel salaryLabel = new JLabel("Annual Salary:");
+        salaryLabel = new JLabel("Annual Salary:");
         salaryLabel.setFont(formFont);
 
         form.add(salaryLabel, gbc);
@@ -214,6 +229,12 @@ public class EditProfilePanel extends JPanel {
         gbc.gridx = 1;
 
         form.add(deleteTransactionsCheckBox, gbc);
+
+        if(profile.getRole().equals("Student")){
+            salaryLabel.setText("Student finance payment:");
+            debtLabel.setVisible(false);
+            debtSpinner.setVisible(false);
+        }
 
         return form;
 
