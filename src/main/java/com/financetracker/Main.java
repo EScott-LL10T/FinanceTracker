@@ -2,6 +2,9 @@ package com.financetracker;
 
 
 import javax.swing.*;
+import java.net.URL;
+import javax.swing.ImageIcon;
+
 
 public class Main{
     public static void main(String[] args) {
@@ -16,6 +19,13 @@ public class Main{
         frame.setSize(700, 700);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
+
+        URL iconURL = Main.class.getResource("/icon.png");
+        if (iconURL != null) {
+            ImageIcon imageIcon = new ImageIcon(iconURL);
+            frame.setIconImage(imageIcon.getImage());
+        }
+
 
         SwingUtilities.invokeLater(() -> {
             if(DatabaseHelper.newUser()){
