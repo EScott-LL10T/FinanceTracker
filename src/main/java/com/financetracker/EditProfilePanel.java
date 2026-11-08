@@ -7,7 +7,6 @@ import java.awt.*;
 public class EditProfilePanel extends JPanel {
     private final JFrame frame;
     private final Profile profile;
-
     private JCheckBox deleteTransactionsCheckBox;
     private JTextField nameField;
     private JComboBox<String> newRoleComboBox;
@@ -36,12 +35,12 @@ public class EditProfilePanel extends JPanel {
         JButton cancelButton = new JButton("Cancel");
         cancelButton.setFont(buttonFont);
 
-        JButton addTransactionButton = new JButton("Edit Profile");
-        addTransactionButton.setFont(buttonFont);
+        JButton editProfileButton = new JButton("Edit Profile");
+        editProfileButton.setFont(buttonFont);
 
         JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 80, 80));
         buttonPanel.add(cancelButton);
-        buttonPanel.add(addTransactionButton);
+        buttonPanel.add(editProfileButton);
 
         add(buttonPanel, BorderLayout.SOUTH);
 
@@ -51,7 +50,7 @@ public class EditProfilePanel extends JPanel {
             frame.repaint();
         });
 
-        addTransactionButton.addActionListener(e -> {
+        editProfileButton.addActionListener(e -> {
             String message = "Are you sure you want to update your profile?";
             boolean deleteTransactions = deleteTransactionsCheckBox.isSelected();
             if(deleteTransactions){
@@ -71,6 +70,10 @@ public class EditProfilePanel extends JPanel {
                 if (deleteTransactions) {
                     DatabaseHelper.deleteTransactions(profile.getId());
                 }
+                MainPanel newPanel = new MainPanel(frame);
+                frame.setContentPane(newPanel);
+                frame.revalidate();
+                frame.repaint();
             }
         });
     }
