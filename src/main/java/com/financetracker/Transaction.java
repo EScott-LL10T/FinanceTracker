@@ -17,19 +17,11 @@ public class Transaction {
         this.dateTime = dateTime;
     }
 
-    public double getAmount(){
-        return amount;
-    }
+    public double getAmount(){ return amount; }
 
-    public String getCategory(){
-        return category;
-    }
+    public String getCategory(){ return category; }
 
-    public String getDescription(){
-        return description;
-    }
+    public String getDescription(){ return description; }
 
-    public LocalDateTime getTimeOfTransaction(){
-        return  LocalDateTime.parse(dateTime);
-    }
+    public LocalDateTime getTimeOfTransaction(){ return  LocalDateTime.parse(dateTime); }
 }
