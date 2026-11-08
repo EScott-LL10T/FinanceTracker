@@ -1,6 +1,9 @@
 package com.financetracker;
 
 
+import com.financetracker.errors.IllegalCategoryArgumentException;
+import com.financetracker.errors.IllegalRoleArgumentException;
+
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -92,7 +95,7 @@ public class DatabaseHelper {
         }
     }
 
-    public static int getRoleId(String role) {
+    public static int getRoleId(String role) throws IllegalRoleArgumentException {
         String sql = "SELECT id FROM roles WHERE name = ?";
 
         try (Connection conn = connect();
@@ -110,7 +113,7 @@ public class DatabaseHelper {
             System.out.println("SQL error, " + e.getMessage());
         }
 
-        return -1;
+        throw new IllegalRoleArgumentException();
     }
 
 
@@ -119,7 +122,7 @@ public class DatabaseHelper {
     /* ************************************************************************************************************** */
 
 
-    public static int getCategoryId(String category) {
+    public static int getCategoryId(String category) throws IllegalCategoryArgumentException {
 
         String sql = "SELECT id FROM categories WHERE name = ?";
 
@@ -141,7 +144,7 @@ public class DatabaseHelper {
             System.out.println("SQL error, " + e.getMessage());
         }
 
-        return -1;
+        throw new IllegalCategoryArgumentException();
     }
 
     public static int addCategory(String category) {
@@ -177,12 +180,14 @@ public class DatabaseHelper {
 
 
     public static void createNewUser(String name, String role, double debt, double salary){
-        int roleId = getRoleId(role);
-
-        if (roleId == -1) {
-            System.out.println("SQL error occurred");
+        int roleId;
+        try {
+            roleId = getRoleId(role);
+        }catch(IllegalRoleArgumentException e){
+            e.printMessage();
             return;
         }
+
 
         String sql = """
         INSERT INTO profile (name, roleId, debt, salary, createdAt)
@@ -254,12 +259,14 @@ public class DatabaseHelper {
 
     public static void updateProfile(int id,String name, String role, double debt, double salary) {
 
-        int roleId = getRoleId(role);
-
-        if (roleId == -1) {
-            System.out.println("Role not found.");
+        int roleId;
+        try {
+            roleId = getRoleId(role);
+        }catch(IllegalRoleArgumentException e){
+            e.printMessage();
             return;
         }
+
 
 
         String sql = "UPDATE profile SET name = ?, roleId = ?, debt = ?, salary = ? WHERE id = ? ";
@@ -289,10 +296,11 @@ public class DatabaseHelper {
 
     public static void addTransaction(double amount, String category, String description, String createdAt, int profileId){
 
-        int categoryId = getCategoryId(category);
-
-        if (categoryId == -1) {
-            System.out.println("Category not found.");
+        int categoryId;
+        try {
+            categoryId = getCategoryId(category);
+        } catch (IllegalCategoryArgumentException e) {
+            e.printMessage();
             return;
         }
 
