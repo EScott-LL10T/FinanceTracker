@@ -58,4 +58,10 @@ class ProfileTest {
     void getId(){
         assertEquals(1, p.getId());
     }
+
+    @Test
+    void studentLoanPayment(){
+        p.addStudentLoanPayment(4000.0);
+        assertEquals(8000.0, p.getSalary());
+    }
 }
