@@ -94,7 +94,7 @@ public class MainPanel extends JPanel {
         DefaultPieDataset<String> dataset = new DefaultPieDataset<>();
         double salary;
         if (profile.getRole().equals("Employed")) {
-            salary = (profile.getSalary() - (profile.getSalary() * 0.40)) / 12.0;
+            salary = (profile.getSalary() - (profile.getSalary() * profile.calculateTax())) / 12.0;
         }else{
             salary = profile.getSalary();
         }
@@ -199,7 +199,7 @@ public class MainPanel extends JPanel {
 
         }else{
 
-            double monthlySalary = (profile.getSalary() - (profile.getSalary() * 0.40)) / 12;
+            double monthlySalary = (profile.getSalary() - (profile.getSalary() * profile.calculateTax())) / 12;
 
             JLabel salary = new JLabel("Salary");
             salary.setFont(transactionsFont);
@@ -225,7 +225,7 @@ public class MainPanel extends JPanel {
             JLabel taxed = new JLabel("tax");
             taxed.setFont(transactionsFont);
 
-            JLabel taxedAmount = new JLabel(String.format("£%.2f", profile.getSalary() * 0.40 / 12));
+            JLabel taxedAmount = new JLabel(String.format("£%.2f", profile.getSalary() * profile.calculateTax() / 12));
             taxedAmount.setFont(transactionsFont);
 
             transactionsPanel.add(salary);
