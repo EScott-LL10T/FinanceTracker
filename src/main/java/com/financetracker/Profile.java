@@ -7,7 +7,7 @@ public class Profile {
     private final String name;
     private final String role;
     private final double debt;
-    private double salary;
+    private final double salary;
     private final String timeOfAccountCreation;
     private final int id;
 
@@ -62,7 +62,4 @@ public class Profile {
         return id;
     }
 
-    public void addStudentLoanPayment(double amount){
-        salary += amount;
-    }
 }

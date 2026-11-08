@@ -74,11 +74,17 @@ public class AddTransactionPanel extends JPanel {
             return;
         }
 
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        if(categoryText.equals("Student Loan Payment")){
+            DatabaseHelper.updateProfile(profile.getId(), profile.getName(), profile.getRole(), profile.getDebt(),
+                    profile.getSalary() + amount);
+        }else {
 
-        String dateString = formatter.format(date);
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
-        DatabaseHelper.addTransaction(amount, categoryText, description, dateString, profile.getId());
+            String dateString = formatter.format(date);
+
+            DatabaseHelper.addTransaction(amount, categoryText, description, dateString, profile.getId());
+        }
 
         frame.setContentPane(new MainPanel(frame));
         frame.revalidate();
@@ -124,10 +130,12 @@ public class AddTransactionPanel extends JPanel {
 
         form.add(categoryLabel, gbc);
 
-        categoryComboBox = new JComboBox<>(new String[]{"Entertainment", "Rent", "Food", "Transport", "Shopping",
-                "Other"});
         if(profile.getRole().equals("Student")){
-            categoryComboBox.addItem("Student Loan Payment");
+            categoryComboBox = new JComboBox<>(new String[]{"Entertainment", "Rent", "Food", "Transport", "Shopping",
+                    "Student Loan Payment", "Other"});
+        }else{
+            categoryComboBox = new JComboBox<>(new String[]{"Entertainment", "Rent", "Food", "Transport", "Shopping",
+                    "Other"});
         }
 
         gbc.gridx = 1;
