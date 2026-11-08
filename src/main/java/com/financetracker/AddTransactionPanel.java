@@ -126,6 +126,9 @@ public class AddTransactionPanel extends JPanel {
 
         categoryComboBox = new JComboBox<>(new String[]{"Entertainment", "Rent", "Food", "Transport", "Shopping",
                 "Other"});
+        if(profile.getRole().equals("Student")){
+            categoryComboBox.addItem("Student Loan Payment");
+        }
 
         gbc.gridx = 1;
 
