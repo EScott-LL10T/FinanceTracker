@@ -50,6 +50,7 @@ public class EditProfilePanel extends JPanel {
                 salaryLabel.setVisible(true);
                 debtLabel.setVisible(true);
                 debtSpinner.setVisible(true);
+                salaryLabel.setText("Annual Salary:");
             }else{
                 salaryLabel.setText("Student finance payment:");
                 debtLabel.setVisible(false);
@@ -68,9 +69,21 @@ public class EditProfilePanel extends JPanel {
         editProfileButton.addActionListener(e -> {
             String message = "Are you sure you want to update your profile?";
             boolean deleteTransactions = deleteTransactionsCheckBox.isSelected();
-            if(deleteTransactions){
-                message = message + " All your transaction history will be deleted.";
+            String role = getRole();
+            boolean employedToStudent = checkEmployedToStudent(role);
+            boolean studentToEmployed = checkStudentToEmployed(role);
+
+            if(employedToStudent){
+                message = message + "\nAre you sure you want to move from employed to student.\nAll your transaction " +
+                        "history will be deleted!";
+            }else if(studentToEmployed){
+                message = message + "\nAre you sure you want to move from student to employed.\nAll your transaction " +
+                        "history will be deleted!";
             }
+            else if(deleteTransactions){
+                message = message + "\nAll your transaction history will be deleted!";
+            }
+
             int result = JOptionPane.showConfirmDialog(
                     frame,
                     message,
@@ -82,7 +95,7 @@ public class EditProfilePanel extends JPanel {
 
                 editProfile();
 
-                if (deleteTransactions) {
+                if (deleteTransactions || studentToEmployed || employedToStudent) {
                     DatabaseHelper.deleteTransactions(profile.getId());
                 }
                 MainPanel newPanel = new MainPanel(frame);
@@ -93,19 +106,22 @@ public class EditProfilePanel extends JPanel {
         });
     }
 
+    private boolean checkStudentToEmployed(String role){
+        return role.equals("Employed") && profile.getRole().equals("Student");
+    }
+
+    private boolean checkEmployedToStudent(String role){
+        return role.equals("Student") && profile.getRole().equals("Employed");
+    }
+
     private void editProfile(){
         int id = profile.getId();
         String name = nameField.getText().trim();
         if(name.isEmpty() || name.length() > 2253){ // longest name currently is 2253.
             return;
         }
-        Object objRole = newRoleComboBox.getSelectedItem();
-        String role;
-        if(objRole == null){
-            role = profile.getRole();
-        }else{
-            role = objRole.toString();
-        }
+        String role = getRole();
+
         double debt = (double) debtSpinner.getValue();
         double salary = (double) salarySpinner.getValue();
 
@@ -115,6 +131,17 @@ public class EditProfilePanel extends JPanel {
         frame.setContentPane(new MainPanel(frame));
         frame.revalidate();
         frame.repaint();
+    }
+
+    private String getRole(){
+        Object objRole = newRoleComboBox.getSelectedItem();
+        String role;
+        if(objRole == null){
+            role = profile.getRole();
+        }else{
+            role = objRole.toString();
+        }
+        return role;
     }
 
     private JPanel getForm(){
