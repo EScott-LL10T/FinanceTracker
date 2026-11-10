@@ -15,6 +15,8 @@ public class AddTransactionPanel extends JPanel {
     private JTextField descriptionTextField;
     private JSpinner dateSpinner;
     private final Profile profile;
+    private JLabel costLabel;
+    private JLabel descriptionLabel;
 
     public AddTransactionPanel(JFrame frame, MainPanel mainPanel){
         this.frame = frame;
@@ -47,7 +49,22 @@ public class AddTransactionPanel extends JPanel {
         buttonPanel.add(cancelButton);
         buttonPanel.add(addTransactionButton);
 
+        categoryComboBox.addActionListener(e -> {
+            if(categoryComboBox.getSelectedItem()!= null
+                    && categoryComboBox.getSelectedItem().equals("Student Loan Payment")){
+                costLabel.setText("Loan Payment Amount £:");
+                descriptionLabel.setVisible(false);
+                descriptionTextField.setVisible(false);
+            }else{
+                costLabel.setText("Cost £:");
+                descriptionLabel.setVisible(true);
+                descriptionTextField.setVisible(true);
+            }
+
+        });
+
         add(buttonPanel, BorderLayout.SOUTH);
+
 
         cancelButton.addActionListener(e -> {
             frame.setContentPane(mainPanel);
@@ -63,14 +80,15 @@ public class AddTransactionPanel extends JPanel {
         double amount = (double) amountSpinner.getValue();
         String categoryText = (String) categoryComboBox.getSelectedItem();
         if(categoryText == null){
-            return;
+            categoryText = "Entertainment";
         }
         String description = descriptionTextField.getText();
-        if(description.isEmpty() || description.length() > 1000){
+        if((description.isEmpty() || description.length() > 1000)
+                && !categoryComboBox.getSelectedItem().equals("Student Loan Payment")){
             return;
         }
         Date date = (Date) dateSpinner.getValue();
-        if(date == null){
+        if(date == null && !categoryComboBox.getSelectedItem().equals("Student Loan Payment")){
             return;
         }
 
@@ -109,7 +127,7 @@ public class AddTransactionPanel extends JPanel {
 
         Font formFont = new Font("Ariel", Font.PLAIN, 14);
 
-        JLabel costLabel = new JLabel("Cost £:");
+        costLabel = new JLabel("Cost £:");
         costLabel.setFont(formFont);
 
         form.add(costLabel, gbc);
@@ -147,7 +165,7 @@ public class AddTransactionPanel extends JPanel {
         gbc.gridx = 0;
         gbc.gridy++;
 
-        JLabel descriptionLabel = new JLabel("Description:");
+        descriptionLabel = new JLabel("Description:");
         descriptionLabel.setFont(formFont);
 
         form.add(descriptionLabel, gbc);
