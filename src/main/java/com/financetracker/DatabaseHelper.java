@@ -21,10 +21,12 @@ public class DatabaseHelper {
         String createTableSQL = """
         CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        profileId INTEGER NOT NULL,
         amount REAL NOT NULL,
         categoryId INTEGER NOT NULL,
         description TEXT NOT NULL,
         createdAt TEXT NOT NULL,
+        FOREIGN KEY (profileId) REFERENCES profile(id),
         FOREIGN KEY (categoryId) REFERENCES categories(id)
         );
         """;
@@ -372,7 +374,7 @@ public class DatabaseHelper {
     }
 
     public static void deleteTransactions(int profileId) {
-        String sql = "DELETE FROM transactions";
+        String sql = "DELETE FROM transactions WHERE profileId = ?";
 
         try (Connection conn = connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
