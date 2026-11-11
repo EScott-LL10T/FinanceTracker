@@ -21,12 +21,10 @@ public class DatabaseHelper {
         String createTableSQL = """
         CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        profileId INTEGER NOT NULL,
         amount REAL NOT NULL,
         categoryId INTEGER NOT NULL,
         description TEXT NOT NULL,
         createdAt TEXT NOT NULL,
-        FOREIGN KEY (profileId) REFERENCES profile(id),
         FOREIGN KEY (categoryId) REFERENCES categories(id)
         );
         """;
@@ -329,7 +327,8 @@ public class DatabaseHelper {
     public static ArrayList<Transaction> getTransactions(int profileId){
         ArrayList<Transaction> transactions = new ArrayList<>();
         String sql = """
-        SELECT t.amount,
+        SELECT t.id,
+               t.amount,
                c.name AS category,
                t.description,
                t.createdAt
@@ -345,11 +344,12 @@ public class DatabaseHelper {
             ResultSet rs = stmt.executeQuery();
 
             while(rs.next()) {
+                int id = rs.getInt("id");
                 double amount = rs.getDouble("amount");
                 String category = rs.getString("category");
                 String description = rs.getString("description");
                 String createdAt = rs.getString("createdAt");
-                transactions.add(new Transaction(amount, category, description, createdAt));
+                transactions.add(new Transaction(id, amount, category, description, createdAt));
             }
 
         } catch (SQLException e) {
@@ -359,8 +359,20 @@ public class DatabaseHelper {
 
     }
 
+    public static void deleteTransaction(int id){
+        String sql = "DELETE FROM transactions WHERE id = ?";
+
+        try (Connection conn = connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)){
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        }catch(SQLException e){
+            System.out.println("SQL error, " + e.getMessage());
+        }
+    }
+
     public static void deleteTransactions(int profileId) {
-        String sql = "DELETE FROM transactions WHERE profileId = ?";
+        String sql = "DELETE FROM transactions";
 
         try (Connection conn = connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
