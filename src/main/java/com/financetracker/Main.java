@@ -20,6 +20,7 @@ public class Main{
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
 
+
         URL iconURL = Main.class.getResource("/icon.png");
         if (iconURL != null) {
             ImageIcon imageIcon = new ImageIcon(iconURL);
