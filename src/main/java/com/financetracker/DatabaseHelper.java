@@ -3,6 +3,7 @@ package com.financetracker;
 
 import com.financetracker.errors.IllegalCategoryArgumentException;
 import com.financetracker.errors.IllegalRoleArgumentException;
+import com.financetracker.errors.IllegalTransactionTypeArgumentException;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -26,12 +27,14 @@ public class DatabaseHelper {
         categoryId INTEGER NOT NULL,
         description TEXT NOT NULL,
         createdAt TEXT NOT NULL,
+        transactionTypeId INTEGER NOT NULL,
         FOREIGN KEY (profileId) REFERENCES profile(id),
-        FOREIGN KEY (categoryId) REFERENCES categories(id)
+        FOREIGN KEY (categoryId) REFERENCES categories(id),
+        FOREIGN KEY (transactionTypeId) REFERENCES transactionType(id)
         );
         """;
 
-        String createUsersTableSQL = """
+        String createProfileTableSQL = """
         CREATE TABLE IF NOT EXISTS profile (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -57,13 +60,22 @@ public class DatabaseHelper {
         );
         """;
 
+        String createTransactionTypeSQL = """
+        CREATE TABLE IF NOT EXISTS transactionType (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT NOT NULL UNIQUE
+        );
+        """;
+
         try (Connection conn = connect();
              Statement stmt = conn.createStatement()) {
             stmt.execute(createCategoryTableSQL);
             stmt.execute(createRoleTableSQL);
-            stmt.execute(createUsersTableSQL);
+            stmt.execute(createProfileTableSQL);
             stmt.execute(createTableSQL);
+            stmt.execute(createTransactionTypeSQL);
             insertDefaultRoles();
+            insertDefaultTransactionTypes();
             System.out.println("Database initialized and table verified.");
         } catch (SQLException e) {
             System.out.println("Database initialization failed: " + e.getMessage());
@@ -94,6 +106,7 @@ public class DatabaseHelper {
             System.out.println("SQL error, " + e.getMessage());
         }
     }
+
 
     public static int getRoleId(String role) throws IllegalRoleArgumentException {
         String sql = "SELECT id FROM roles WHERE name = ?";
@@ -170,6 +183,49 @@ public class DatabaseHelper {
         }
 
         return -1;
+    }
+
+    /* ************************************************************************************************************** */
+    /*                                          TransactionType TABLE                                                 */
+    /* ************************************************************************************************************** */
+
+    public static void insertDefaultTransactionTypes() {
+
+        String sql = "INSERT OR IGNORE INTO transactionType (type) VALUES (?)";
+
+        try (Connection conn = connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, "Income");
+            stmt.executeUpdate();
+
+            stmt.setString(1, "Expense");
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            System.out.println("SQL error, " + e.getMessage());
+        }
+    }
+
+    public static int getTransactionTypeId(String type) throws IllegalTransactionTypeArgumentException {
+
+        String sql = "SELECT id FROM transactionType WHERE type = ?";
+
+        try (Connection conn = connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, type);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id");
+                } // need to add else statement to add role to roles database if not found
+            }
+
+        } catch (SQLException e) {
+            System.out.println("SQL error, " + e.getMessage());
+        }
+        throw new IllegalTransactionTypeArgumentException();
     }
 
 
@@ -294,7 +350,8 @@ public class DatabaseHelper {
 
 
 
-    public static void addTransaction(double amount, String category, String description, String createdAt, int profileId){
+    public static void addTransaction(double amount, String category, String description, String createdAt,
+                                      int profileId, String transactionType){
 
         int categoryId;
         try {
@@ -304,9 +361,17 @@ public class DatabaseHelper {
             return;
         }
 
+        int transactionId;
+        try{
+            transactionId = getTransactionTypeId(transactionType);
+        }catch(IllegalTransactionTypeArgumentException e){
+            e.printMessage();
+            return;
+        }
+
         String sql = """
-        INSERT INTO transactions (profileId, amount, categoryId, description, createdAt)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO transactions (profileId, amount, categoryId, description, createdAt, transactionTypeId)
+        VALUES (?, ?, ?, ?, ?, ?)
         """;
 
         try (Connection conn = DatabaseHelper.connect();
@@ -317,6 +382,7 @@ public class DatabaseHelper {
             stmt.setInt(3, categoryId);
             stmt.setString(4, description);
             stmt.setString(5, createdAt);
+            stmt.setInt(6, transactionId);
 
             stmt.executeUpdate();
 
@@ -332,11 +398,14 @@ public class DatabaseHelper {
         SELECT t.id,
                t.amount,
                c.name AS category,
+               tt.type AS type,
                t.description,
                t.createdAt
         FROM transactions t
-        JOIN categories c ON t.categoryId = c.id
-        WHERE t.profileId = ?;
+        JOIN categories c        ON t.categoryId = c.id
+        JOIN transactionType tt  ON t.transactionTypeId = tt.id
+        WHERE t.profileId = ?
+        ORDER BY t.createdAt DESC;
         """;
         try (Connection conn = DatabaseHelper.connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -351,7 +420,12 @@ public class DatabaseHelper {
                 String category = rs.getString("category");
                 String description = rs.getString("description");
                 String createdAt = rs.getString("createdAt");
-                transactions.add(new Transaction(id, amount, category, description, createdAt));
+                String type = rs.getString("type");
+                TransactionType transactionType = TransactionType.EXPENSE;
+                if(type.equals("Income")){
+                    transactionType = TransactionType.INCOME;
+                }
+                transactions.add(new Transaction(id, amount, category, description, createdAt, transactionType));
             }
 
         } catch (SQLException e) {
