@@ -3,6 +3,8 @@ package com.financetracker;
 
 import javax.swing.*;
 import java.awt.*;
+import java.time.LocalDateTime;
+import java.util.Objects;
 
 public class CreateProfilePanel extends JPanel{
     private final JFrame frame;
@@ -78,7 +80,7 @@ public class CreateProfilePanel extends JPanel{
         Object objRole = roleComboBox.getSelectedItem();
         String role;
         if(objRole == null){
-            role = "employed";
+            role = "Employed";
         }else{
             role = objRole.toString();
         }
@@ -86,7 +88,10 @@ public class CreateProfilePanel extends JPanel{
         double salary = (double) salarySpinner.getValue();
 
         if(role.equals("Student")){
-            DatabaseHelper.createNewUser(name, role, 0, salary);
+            DatabaseHelper.createNewUser(name, role, 0,0);
+            DatabaseHelper.addTransaction(salary, "Student Loan Payment",
+                    "First student loan payment", LocalDateTime.now().toString(),
+                    Objects.requireNonNull(DatabaseHelper.getProfile()).getId(), "Income");
         }else{
             DatabaseHelper.createNewUser(name, role, debt, salary);
         }
