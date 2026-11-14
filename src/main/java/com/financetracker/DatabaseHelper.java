@@ -195,6 +195,7 @@ public class DatabaseHelper {
 
         try (Connection conn = connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+            // "Expense", "Income"
 
             stmt.setString(1, "Income");
             stmt.executeUpdate();

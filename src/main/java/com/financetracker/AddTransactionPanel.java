@@ -14,9 +14,11 @@ public class AddTransactionPanel extends JPanel {
     private JComboBox<String> categoryComboBox;
     private JTextField descriptionTextField;
     private JSpinner dateSpinner;
+    private JComboBox<String> typeComboBox;
     private final Profile profile;
     private JLabel costLabel;
     private JLabel descriptionLabel;
+    private JLabel typeLabel;
 
     public AddTransactionPanel(JFrame frame, MainPanel mainPanel){
         this.frame = frame;
@@ -24,7 +26,7 @@ public class AddTransactionPanel extends JPanel {
 
         setLayout(new BorderLayout());
 
-        Font buttonFont = new Font("Ariel", Font.PLAIN, 16);
+        Font buttonFont = new Font("Arial", Font.PLAIN, 16);
 
         Font titleFont = new Font("SansSerif", Font.BOLD, 30);
 
@@ -61,6 +63,14 @@ public class AddTransactionPanel extends JPanel {
                 descriptionTextField.setVisible(true);
             }
 
+            if(categoryComboBox.getSelectedItem() != null && categoryComboBox.getSelectedItem().equals("Other")){
+                typeLabel.setVisible(true);
+                typeComboBox.setVisible(true);
+            }else{
+                typeLabel.setVisible(false);
+                typeComboBox.setVisible(false);
+            }
+
         });
 
         add(buttonPanel, BorderLayout.SOUTH);
@@ -82,27 +92,30 @@ public class AddTransactionPanel extends JPanel {
         if(categoryText == null){
             categoryText = "Entertainment";
         }
+        // "Expense", "Income"
+        String transactionType = "Expense";
+        if (categoryText.equals("Other")) {
+            if(typeComboBox.getSelectedItem() != null){
+                transactionType = typeComboBox.getSelectedItem().toString();
+            }
+        }else if(categoryComboBox.getSelectedItem().equals("Student Loan Payment")){
+            transactionType = "Income";
+        }
         String description = descriptionTextField.getText();
         if((description.isEmpty() || description.length() > 1000)
                 && !categoryComboBox.getSelectedItem().equals("Student Loan Payment")){
             return;
         }
         Date date = (Date) dateSpinner.getValue();
-        if(date == null && !categoryComboBox.getSelectedItem().equals("Student Loan Payment")){
+        if(date == null && !categoryComboBox.getSelectedItem().equals("Student Loan Payment")) {
             return;
         }
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
-        if(categoryText.equals("Student Loan Payment")){
-            DatabaseHelper.updateProfile(profile.getId(), profile.getName(), profile.getRole(), profile.getDebt(),
-                    profile.getSalary() + amount);
-        }else {
+        String dateString = formatter.format(date);
 
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        DatabaseHelper.addTransaction(amount, categoryText, description, dateString, profile.getId(), transactionType);
 
-            String dateString = formatter.format(date);
-
-            DatabaseHelper.addTransaction(amount, categoryText, description, dateString, profile.getId());
-        }
 
         frame.setContentPane(new MainPanel(frame));
         frame.revalidate();
@@ -125,7 +138,7 @@ public class AddTransactionPanel extends JPanel {
         gbc.gridy = 0;
         gbc.weightx = 0;
 
-        Font formFont = new Font("Ariel", Font.PLAIN, 14);
+        Font formFont = new Font("Arial", Font.PLAIN, 14);
 
         costLabel = new JLabel("Cost £:");
         costLabel.setFont(formFont);
@@ -161,6 +174,25 @@ public class AddTransactionPanel extends JPanel {
         categoryComboBox.setFont(formFont);
 
         form.add(categoryComboBox, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+
+        typeLabel = new JLabel("Type:");
+        typeLabel.setFont(formFont);
+
+
+        form.add(typeLabel, gbc);
+
+        typeComboBox = new JComboBox<>(new String[]{"Expense", "Income"});
+        typeComboBox.setFont(formFont);
+
+        gbc.gridx = 1;
+
+        form.add(typeComboBox, gbc);
+
+        typeLabel.setVisible(false);
+        typeComboBox.setVisible(false);
 
         gbc.gridx = 0;
         gbc.gridy++;
