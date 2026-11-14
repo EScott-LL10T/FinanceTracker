@@ -10,13 +10,16 @@ public class Transaction {
     private final String category;
     private final String description;
     private final String dateTime;
+    private TransactionType transactionType;
 
-    public Transaction(int id, double amount, String category, String description, String dateTime){
+    public Transaction(int id, double amount, String category, String description, String dateTime, TransactionType
+            transactionType){
         this.id = id;
         this.amount = amount;
         this.category = category;
         this.description = description;
         this.dateTime = dateTime;
+        this.transactionType = transactionType;
     }
 
     public int getId(){
