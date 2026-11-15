@@ -5,9 +5,8 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.List;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -109,9 +108,18 @@ public class MainPanel extends JPanel {
     private JPanel getPieChartPanel() {
         DefaultPieDataset<String> dataset = new DefaultPieDataset<>();
 
+        // Income chunks are used up in this order after salary; unlisted ones come after, alphabetically
+        List<String> incomePriority = List.of("Student Loan Payment income", "Other income");
+        Comparator<String> incomeOrder = Comparator
+                .comparingInt((String key) -> {
+                    int i = incomePriority.indexOf(key);
+                    return i == -1 ? incomePriority.size() : i;
+                })
+                .thenComparing(Comparator.naturalOrder());
+
         double totalSpent = 0.0;
-        Map<String, Double> spentByCategory = new HashMap<>();
-        Map<String, Double> incomeByCategory = new HashMap<>();
+        Map<String, Double> spentByCategory = new LinkedHashMap<>();
+        Map<String, Double> incomeByCategory = new TreeMap<>(incomeOrder);
 
         for (Transaction t : monthlyTransactions) {
             if (t.getTransactionType() == TransactionType.INCOME) {
@@ -122,9 +130,16 @@ public class MainPanel extends JPanel {
             }
         }
 
-        // Spending comes out of income first, then salary
         double remainingSpend = totalSpent;
-        Map<String, Double> incomeLeft = new  HashMap<>();
+
+        // 1) Salary absorbs spending first
+        double salary = Math.max(0, profile.getSalary());
+        double salaryUsed = Math.min(salary, remainingSpend);
+        remainingSpend -= salaryUsed;
+        double salaryLeft = salary - salaryUsed;
+
+        // 2) Then income chunks, in priority order
+        Map<String, Double> incomeLeft = new LinkedHashMap<>();
         for (Map.Entry<String, Double> e : incomeByCategory.entrySet()) {
             double used = Math.min(e.getValue(), remainingSpend);
             remainingSpend -= used;
@@ -134,14 +149,12 @@ public class MainPanel extends JPanel {
             }
         }
 
-        double salaryLeft = profile.getSalary() - remainingSpend;
-        double overspent = 0.0;
+        // 3) Whatever is still unaccounted for is the overspend
+        double overspent = remainingSpend > 0.005 ? remainingSpend : 0.0;
 
-        // Funds slices FIRST (so expense slices draw on top of the shared edges)
+        // Funds slices FIRST
         if (salaryLeft > 0.005) {
             dataset.setValue("Available", salaryLeft);
-        } else if (salaryLeft < -0.005) {
-            overspent = -salaryLeft;
         }
         for (Map.Entry<String, Double> e : incomeLeft.entrySet()) {
             dataset.setValue(e.getKey(), e.getValue());
@@ -198,109 +211,7 @@ public class MainPanel extends JPanel {
     }
 
 
-    private JPanel getTransactionsPanel(){
-        JPanel transactionsPanel = new JPanel();
 
-        Font transactionsFont = new Font("Arial", Font.PLAIN, 16);
-        transactionsPanel.setLayout(new BoxLayout(transactionsPanel, BoxLayout.Y_AXIS));
-        TitledBorder titledBorder = BorderFactory.createTitledBorder("Financial Summary");
-        titledBorder.setTitleFont(new Font("Ariel", Font.BOLD, 20));
-        transactionsPanel.setBorder(titledBorder);
-
-        boolean isStudent = profile.getRole().equals("Student");
-        if(isStudent){
-
-
-            double loanFunds = profile.getSalary();
-
-
-            JLabel salary = new JLabel("Loan amount");
-            salary.setFont(transactionsFont);
-
-            String monthlySalaryFormatted = String.format("£%.2f", loanFunds);
-
-            JLabel loanAmount = new JLabel(monthlySalaryFormatted);
-            loanAmount.setFont(transactionsFont);
-
-            JLabel totalSpent = new JLabel("Total Spent");
-            totalSpent.setFont(transactionsFont);
-
-            double totalSpend = calculateExpenseTransactionsTotal(monthlyTransactions);
-            JLabel totalSpentAmount = new JLabel(String.format("£%.2f", totalSpend));
-            totalSpentAmount.setFont(transactionsFont);
-
-            JLabel available = new JLabel("Available");
-            available.setFont(transactionsFont);
-
-            JLabel availableAmount = new JLabel(String.format("£%.2f", loanFunds - totalSpend));
-            availableAmount.setFont(transactionsFont);
-
-            transactionsPanel.add(salary);
-            transactionsPanel.add(loanAmount);
-
-            transactionsPanel.add(Box.createVerticalStrut(5));
-
-            transactionsPanel.add(totalSpent);
-            transactionsPanel.add(totalSpentAmount);
-
-            transactionsPanel.add(Box.createVerticalStrut(5));
-
-            transactionsPanel.add(available);
-            transactionsPanel.add(availableAmount);
-
-        }else{
-
-            double monthlySalary = (profile.getSalary() - (profile.getSalary() * profile.calculateTax())) / 12;
-
-            JLabel salary = new JLabel("Salary");
-            salary.setFont(transactionsFont);
-
-            String monthlySalaryFormatted = String.format("£%.2f", monthlySalary);
-
-            JLabel salaryAmount = new JLabel(monthlySalaryFormatted);
-            salaryAmount.setFont(transactionsFont);
-
-            JLabel totalSpent = new JLabel("Total Spent");
-            totalSpent.setFont(transactionsFont);
-
-            double totalSpend = calculateExpenseTransactionsTotal(transactions);
-            JLabel totalSpentAmount = new JLabel(String.format("£%.2f", totalSpend));
-            totalSpentAmount.setFont(transactionsFont);
-
-            JLabel available = new JLabel("Available");
-            available.setFont(transactionsFont);
-
-            JLabel availableAmount = new JLabel(String.format("£%.2f", monthlySalary - totalSpend));
-            availableAmount.setFont(transactionsFont);
-
-            JLabel taxed = new JLabel("tax");
-            taxed.setFont(transactionsFont);
-
-            JLabel taxedAmount = new JLabel(String.format("£%.2f", profile.getSalary() * profile.calculateTax() / 12));
-            taxedAmount.setFont(transactionsFont);
-
-            transactionsPanel.add(salary);
-            transactionsPanel.add(salaryAmount);
-
-            transactionsPanel.add(Box.createVerticalStrut(5));
-
-            transactionsPanel.add(totalSpent);
-            transactionsPanel.add(totalSpentAmount);
-
-            transactionsPanel.add(Box.createVerticalStrut(5));
-
-            transactionsPanel.add(available);
-            transactionsPanel.add(availableAmount);
-
-            transactionsPanel.add(Box.createVerticalStrut(5));
-
-            transactionsPanel.add(taxed);
-            transactionsPanel.add(taxedAmount);
-        }
-
-        return transactionsPanel;
-
-    }
 
     private ArrayList<Transaction> getMonthlyTransactions(){
         ArrayList<Transaction> monthlyTransactions = new ArrayList<>();
@@ -338,6 +249,93 @@ public class MainPanel extends JPanel {
         double total = 0.0;
         for(Transaction t : transactions){
             if(t.getTransactionType() == TransactionType.EXPENSE) {
+                total = total + t.getAmount();
+            }
+        }
+        return total;
+    }
+
+    private JPanel getTransactionsPanel(){
+        JPanel transactionsPanel = new JPanel();
+
+        Font transactionsFont = new Font("Arial", Font.PLAIN, 16);
+        transactionsPanel.setLayout(new BoxLayout(transactionsPanel, BoxLayout.Y_AXIS));
+        TitledBorder titledBorder = BorderFactory.createTitledBorder("Financial Summary");
+        titledBorder.setTitleFont(new Font("Arial", Font.BOLD, 20));
+        transactionsPanel.setBorder(titledBorder);
+
+        boolean isStudent = profile.getRole().equals("Student");
+
+        double monthlyFunds = getMonthlyFunds();
+        double totalSpend = calculateExpenseTransactionsTotal(monthlyTransactions);
+        double totalIncome = calculateIncomeTransactionsTotal(monthlyTransactions);
+        double availableFunds = monthlyFunds + totalIncome - totalSpend;
+
+        if(isStudent){
+            double loanPayments = calculateStudentLoanIncomeTotal(monthlyTransactions);
+            double loanAmount = monthlyFunds + loanPayments;
+            totalIncome = totalIncome - loanPayments; // leave only non-loan income for the "Other income" row
+
+            addSummaryRow(transactionsPanel, "Loan amount", loanAmount, transactionsFont, null);
+        }else{
+            double monthlyTax = profile.getSalary() * profile.calculateTax() / 12;
+            addSummaryRow(transactionsPanel, "Salary", monthlyFunds, transactionsFont, null);
+            addSummaryRow(transactionsPanel, "Tax", monthlyTax, transactionsFont, null);
+        }
+        if(totalIncome > 0.005){
+            addSummaryRow(transactionsPanel, "Other income", totalIncome, transactionsFont, null);
+        }
+
+        addSummaryRow(transactionsPanel, "Total Spent", totalSpend, transactionsFont, null);
+        addSummaryRow(transactionsPanel, "Available", availableFunds, transactionsFont,
+                availableFunds < 0 ? Color.RED : null);
+
+        return transactionsPanel;
+    }
+
+    // Loan for students, monthly take-home pay for everyone else
+    private double getMonthlyFunds(){
+        double salary = profile.getSalary();
+        if(profile.getRole().equals("Student")){
+            return salary;
+        }
+        return (salary - (salary * profile.calculateTax())) / 12;
+    }
+
+    private void addSummaryRow(JPanel panel, String labelText, double amount, Font font, Color valueColour){
+        if(panel.getComponentCount() > 0){
+            panel.add(Box.createVerticalStrut(5));
+        }
+
+        JLabel label = new JLabel(labelText);
+        label.setFont(font);
+
+        String amountText = (amount < 0 ? "-" : "") + String.format("£%.2f", Math.abs(amount));
+        JLabel amountLabel = new JLabel(amountText);
+        amountLabel.setFont(font);
+        if(valueColour != null){
+            amountLabel.setForeground(valueColour);
+        }
+
+        panel.add(label);
+        panel.add(amountLabel);
+    }
+
+    private static double calculateStudentLoanIncomeTotal(ArrayList<Transaction> transactions){
+        double total = 0.0;
+        for(Transaction t : transactions){
+            if(t.getTransactionType() == TransactionType.INCOME
+                    && t.getCategory().equals("Student Loan Payment")){
+                total = total + t.getAmount();
+            }
+        }
+        return total;
+    }
+
+    private static double calculateIncomeTransactionsTotal(ArrayList<Transaction> transactions){
+        double total = 0.0;
+        for(Transaction t : transactions){
+            if(t.getTransactionType() == TransactionType.INCOME){
                 total = total + t.getAmount();
             }
         }
