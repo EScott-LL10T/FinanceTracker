@@ -6,10 +6,11 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.labels.PieSectionLabelGenerator;
 import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
 import org.jfree.chart.plot.PiePlot;
 import org.jfree.data.general.DefaultPieDataset;
@@ -19,6 +20,21 @@ public class MainPanel extends JPanel {
     private final Profile profile;
     private ArrayList<Transaction> transactions;
     private ArrayList<Transaction> monthlyTransactions;
+    private static final Color FUNDS_COLOUR = new Color(128, 0, 128);
+
+    private static final Map<String, Color> CATEGORY_COLOURS = Map.of(
+            "Entertainment", Color.RED,
+            "Rent", Color.BLUE,
+            "Food", Color.GREEN,
+            "Transport", Color.ORANGE,
+            "Shopping", Color.YELLOW,
+            "Other", Color.GRAY,
+            "Student Loan Payment", new Color(0, 128, 128)
+    );
+
+    private static final Color[] FALLBACK_COLOURS = {
+            Color.CYAN, Color.PINK, Color.MAGENTA, new Color(139, 69, 19)
+    };
 
     public MainPanel(JFrame frame) {
         // get data from database.
@@ -41,7 +57,7 @@ public class MainPanel extends JPanel {
 
         add(splitPane, BorderLayout.CENTER);
 
-        Font buttonFont = new Font("Ariel", Font.PLAIN, 16);
+        Font buttonFont = new Font("Arial", Font.PLAIN, 16);
 
         JButton exitButton = new JButton("Exit");
         exitButton.setFont(buttonFont);
@@ -92,58 +108,93 @@ public class MainPanel extends JPanel {
 
     private JPanel getPieChartPanel() {
         DefaultPieDataset<String> dataset = new DefaultPieDataset<>();
-        double salary;
-        if (profile.getRole().equals("Employed")) {
-            salary = (profile.getSalary() - (profile.getSalary() * profile.calculateTax())) / 12.0;
-        }else{
-            salary = profile.getSalary();
-        }
+
         double totalSpent = 0.0;
-        for (Transaction transaction : monthlyTransactions) {
-            double amount = transaction.getAmount();
-            String category = transaction.getCategory();
+        Map<String, Double> spentByCategory = new HashMap<>();
+        Map<String, Double> incomeByCategory = new HashMap<>();
 
-            if (!dataset.getKeys().contains(category)) {
-                dataset.setValue(category, amount);
+        for (Transaction t : monthlyTransactions) {
+            if (t.getTransactionType() == TransactionType.INCOME) {
+                incomeByCategory.merge(t.getCategory() + " income", t.getAmount(), Double::sum);
             } else {
-                double currentAmount = dataset.getValue(category).doubleValue();
-                dataset.setValue(category, currentAmount + amount);
+                spentByCategory.merge(t.getCategory(), t.getAmount(), Double::sum);
+                totalSpent += t.getAmount();
             }
-            totalSpent += amount;
         }
-        double available = salary - totalSpent;
 
-        dataset.setValue("Available", available);
+        // Spending comes out of income first, then salary
+        double remainingSpend = totalSpent;
+        Map<String, Double> incomeLeft = new  HashMap<>();
+        for (Map.Entry<String, Double> e : incomeByCategory.entrySet()) {
+            double used = Math.min(e.getValue(), remainingSpend);
+            remainingSpend -= used;
+            double left = e.getValue() - used;
+            if (left > 0.005) {
+                incomeLeft.put(e.getKey(), left);
+            }
+        }
 
-        JFreeChart pieChart = getPieChart(dataset);
+        double salaryLeft = profile.getSalary() - remainingSpend;
+        double overspent = 0.0;
 
+        // Funds slices FIRST (so expense slices draw on top of the shared edges)
+        if (salaryLeft > 0.005) {
+            dataset.setValue("Available", salaryLeft);
+        } else if (salaryLeft < -0.005) {
+            overspent = -salaryLeft;
+        }
+        for (Map.Entry<String, Double> e : incomeLeft.entrySet()) {
+            dataset.setValue(e.getKey(), e.getValue());
+        }
 
-        return new ChartPanel(pieChart);
+        // Expense slices LAST
+        for (Map.Entry<String, Double> e : spentByCategory.entrySet()) {
+            dataset.setValue(e.getKey(), e.getValue());
+        }
 
+        String title = overspent > 0
+                ? String.format("Budget Distribution - Overspent by £%.2f", overspent)
+                : "Budget Distribution";
+
+        return new ChartPanel(getPieChart(dataset, title));
     }
 
-    private static JFreeChart getPieChart(DefaultPieDataset<String> dataset) {
+
+    private static boolean isFunds(String key) {
+        return key.equals("Available") || key.endsWith(" income");
+    }
+
+    private static JFreeChart getPieChart(DefaultPieDataset<String> dataset, String title) {
         PiePlot<String> plot = new PiePlot<>(dataset);
-
-
-        PieSectionLabelGenerator labelGenerator = new StandardPieSectionLabelGenerator("{0}: £{1} ({2})");
 
         plot.setBackgroundPaint(Color.WHITE);
         plot.setOutlineVisible(false);
-        plot.setLabelGenerator(labelGenerator);
+        plot.setLabelGenerator(new StandardPieSectionLabelGenerator("{0}: £{1} ({2})"));
+        plot.setLabelFont(new Font("Arial", Font.PLAIN, 12));
 
-        plot.setSectionPaint("Entertainment", Color.RED);
-        plot.setSectionPaint("Rent", Color.BLUE);
-        plot.setSectionPaint("Food", Color.GREEN);
-        plot.setSectionPaint("Transport", Color.ORANGE);
-        plot.setSectionPaint("Shopping", Color.YELLOW);
-        plot.setSectionPaint("Other", Color.GRAY);
-        plot.setSectionPaint("Available", new Color(128, 0, 128));
+        plot.setSectionOutlinesVisible(true);
 
-        plot.setLabelFont(new Font("Ariel", Font.PLAIN, 12));
+        int fallbackIndex = 0;
+        for (String key : dataset.getKeys()) {
+            if (isFunds(key)) {
+                // Thin black divider, only visible between funds slices
+                plot.setSectionPaint(key, FUNDS_COLOUR);
+                plot.setSectionOutlinePaint(key, Color.BLACK);
+                plot.setSectionOutlineStroke(key, new BasicStroke(1f));
+            } else {
+                // Outline matches the fill, so it's invisible between expenses and
+                // slightly thicker than the black line so it covers it on shared edges
+                Color colour = CATEGORY_COLOURS.get(key);
+                if (colour == null) {
+                    colour = FALLBACK_COLOURS[fallbackIndex++ % FALLBACK_COLOURS.length];
+                }
+                plot.setSectionPaint(key, colour);
+                plot.setSectionOutlinePaint(key, colour);
+                plot.setSectionOutlineStroke(key, new BasicStroke(1.5f));
+            }
+        }
 
-
-        return new JFreeChart("Budget Distribution", JFreeChart.DEFAULT_TITLE_FONT, plot, true);
+        return new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT, plot, true);
     }
 
 
@@ -174,7 +225,7 @@ public class MainPanel extends JPanel {
             JLabel totalSpent = new JLabel("Total Spent");
             totalSpent.setFont(transactionsFont);
 
-            double totalSpend = calculateTransactionsTotal(monthlyTransactions);
+            double totalSpend = calculateExpenseTransactionsTotal(monthlyTransactions);
             JLabel totalSpentAmount = new JLabel(String.format("£%.2f", totalSpend));
             totalSpentAmount.setFont(transactionsFont);
 
@@ -212,7 +263,7 @@ public class MainPanel extends JPanel {
             JLabel totalSpent = new JLabel("Total Spent");
             totalSpent.setFont(transactionsFont);
 
-            double totalSpend = calculateTransactionsTotal(transactions);
+            double totalSpend = calculateExpenseTransactionsTotal(transactions);
             JLabel totalSpentAmount = new JLabel(String.format("£%.2f", totalSpend));
             totalSpentAmount.setFont(transactionsFont);
 
@@ -267,16 +318,28 @@ public class MainPanel extends JPanel {
         return monthlyTransactions;
     }
 
+    public double getStudentLoanPayments(){
+        double total = 0;
+        for(Transaction t: transactions){
+            if(t.getCategory().equals("Student Loan Payment")){
+                total += t.getAmount();
+            }
+        }
+        return total;
+    }
+
     private void setNewFrameContent(JFrame frame, JPanel panel){
         frame.setContentPane(panel);
         frame.revalidate();
         frame.repaint();
     }
 
-    private static double calculateTransactionsTotal(ArrayList<Transaction> transactions){
+    private static double calculateExpenseTransactionsTotal(ArrayList<Transaction> transactions){
         double total = 0.0;
-        for(Transaction transaction : transactions){
-            total = total + transaction.getAmount();
+        for(Transaction t : transactions){
+            if(t.getTransactionType() == TransactionType.EXPENSE) {
+                total = total + t.getAmount();
+            }
         }
         return total;
     }
