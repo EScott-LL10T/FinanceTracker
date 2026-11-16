@@ -37,21 +37,46 @@ public class Profile {
     }
 
     public double calculateTax(){
-        // uk tax brackets
-        // £0–£12,570	    0%
-        // £12,571–£50,270	20%
-        // £50,271–£125,140	40%
-        // Over £125,140	45%
-
-        if(salary <= 12570.0 || role.equals("Student")){
+        if(role.equals("Student") || salary <= 12570.0){
             return 0.0;
-        }else if(salary <= 50270.0){
-            return 0.2;
-        }else if(salary <= 125140.0){
-            return 0.4;
-        }else{
-            return 0.45;
         }
+
+        // Personal allowance drops by £1 for every £2 over £100,000, down to zero
+        double allowance = 12570.0 - Math.max(0.0, (salary - 100000.0) / 2.0);
+        allowance = Math.max(0.0, allowance);
+
+        double taxable = Math.max(0.0, salary - allowance);
+
+        double tax = 0.0;
+
+        // 20% on the first £37,700 of taxable income
+        tax += Math.min(taxable, 37700.0) * 0.20;
+
+        // 40% on taxable income from £37,700 to £125,140
+        if(taxable > 37700.0){
+            tax += (Math.min(taxable, 125140.0) - 37700.0) * 0.40;
+        }
+
+        // 45% on taxable income over £125,140
+        if(taxable > 125140.0){
+            tax += (taxable - 125140.0) * 0.45;
+        }
+
+        return tax / salary;   // effective rate, so salary * calculateTax() is the total tax
+    }
+
+    public double calculateNationalInsurance(){
+        if(role.equals("Student") || salary <= 12570.0){
+            return 0.0;
+        }
+
+        double ni = (Math.min(salary, 50270.0) - 12570.0) * 0.08;
+
+        if(salary > 50270.0){
+            ni += (salary - 50270.0) * 0.02;
+        }
+
+        return ni / salary;   // effective rate, same convention as calculateTax()
     }
 
     public LocalDateTime getTimeOfAccountCreation(){
