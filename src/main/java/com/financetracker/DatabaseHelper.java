@@ -19,6 +19,7 @@ public class DatabaseHelper {
 
     public static void initializeDatabase() {
 
+        // sql strings for creating the table if not already created normalized to 3NF/BCNF
         String createTableSQL = """
         CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,7 +27,7 @@ public class DatabaseHelper {
         amount REAL NOT NULL,
         categoryId INTEGER NOT NULL,
         description TEXT NOT NULL,
-        createdAt TEXT NOT NULL,
+        createdAt VARCHAR(255) NOT NULL,
         transactionTypeId INTEGER NOT NULL,
         FOREIGN KEY (profileId) REFERENCES profile(id),
         FOREIGN KEY (categoryId) REFERENCES categories(id),
@@ -41,7 +42,7 @@ public class DatabaseHelper {
         roleId INTEGER NOT NULL,
         debt REAL not NULL DEFAULT 0,
         salary REAL not NULL,
-        createdAt TEXT NOT NULL,
+        createdAt VARCHAR(255) NOT NULL,
         FOREIGN KEY (roleId) REFERENCES roles(id)
         );
         """;
@@ -49,21 +50,21 @@ public class DatabaseHelper {
         String createCategoryTableSQL = """
         CREATE TABLE IF NOT EXISTS categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL UNIQUE
+        name VARCHAR(255) NOT NULL UNIQUE
         );
         """;
 
         String createRoleTableSQL = """
         CREATE TABLE IF NOT EXISTS roles (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL UNIQUE
+        name VARCHAR(255) NOT NULL UNIQUE
         );
         """;
 
         String createTransactionTypeSQL = """
         CREATE TABLE IF NOT EXISTS transactionType (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        type TEXT NOT NULL UNIQUE
+        name VARCHAR(255) NOT NULL UNIQUE
         );
         """;
 
@@ -191,7 +192,7 @@ public class DatabaseHelper {
 
     public static void insertDefaultTransactionTypes() {
 
-        String sql = "INSERT OR IGNORE INTO transactionType (type) VALUES (?)";
+        String sql = "INSERT OR IGNORE INTO transactionType (name) VALUES (?)";
 
         try (Connection conn = connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -210,7 +211,7 @@ public class DatabaseHelper {
 
     public static int getTransactionTypeId(String type) throws IllegalTransactionTypeArgumentException {
 
-        String sql = "SELECT id FROM transactionType WHERE type = ?";
+        String sql = "SELECT id FROM transactionType WHERE name = ?";
 
         try (Connection conn = connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -399,7 +400,7 @@ public class DatabaseHelper {
         SELECT t.id,
                t.amount,
                c.name AS category,
-               tt.type AS type,
+               tt.name AS type,
                t.description,
                t.createdAt
         FROM transactions t

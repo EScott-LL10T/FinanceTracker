@@ -13,13 +13,19 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
 import org.jfree.chart.plot.PiePlot;
 import org.jfree.data.general.DefaultPieDataset;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 
 public class MainPanel extends JPanel {
 
     private final Profile profile;
     private ArrayList<Transaction> transactions;
-    private ArrayList<Transaction> monthlyTransactions;
     private static final Color FUNDS_COLOUR = new Color(128, 0, 128);
+    private ArrayList<Transaction> periodTransactions;
+    private String selectedPeriod = "Month";
+    private JPanel splitPane;
+    private static final String[] PERIODS = {"Day", "Month", "Year", "All time"};
 
     private static final Map<String, Color> CATEGORY_COLOURS = Map.of(
             "Entertainment", Color.RED,
@@ -42,7 +48,7 @@ public class MainPanel extends JPanel {
             return;
         }
         transactions = DatabaseHelper.getTransactions(profile.getId());
-        monthlyTransactions = getMonthlyTransactions();
+        periodTransactions = getTransactionsForPeriod();
 
         // Main layout
         setLayout(new BorderLayout());
@@ -50,11 +56,34 @@ public class MainPanel extends JPanel {
         // Header Panel
         JLabel headerLabel = new JLabel(profile.getName() + " Budget Dashboard", SwingConstants.CENTER);
         headerLabel.setFont(new Font("Arial", Font.BOLD, 30));
-        add(headerLabel, BorderLayout.NORTH);
 
-        JSplitPane splitPane = getSplitPane();
+        Font periodFont = new Font("Arial", Font.PLAIN, 16);
 
+        JLabel periodLabel = new JLabel("Show:");
+        periodLabel.setFont(periodFont);
+
+        JComboBox<String> periodComboBox = new JComboBox<>(PERIODS);
+        periodComboBox.setFont(periodFont);
+        periodComboBox.setSelectedItem(selectedPeriod);
+
+        JPanel periodPanel = new JPanel();
+        periodPanel.add(periodLabel);
+        periodPanel.add(periodComboBox);
+
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.add(headerLabel, BorderLayout.CENTER);
+        headerPanel.add(periodPanel, BorderLayout.EAST);
+        add(headerPanel, BorderLayout.NORTH);
+
+        splitPane = getSplitPane();   // assigns the field, no "JPanel" in front
         add(splitPane, BorderLayout.CENTER);
+
+        // Added after setSelectedItem so it doesn't fire on startup
+        periodComboBox.addActionListener(e -> {
+            selectedPeriod = (String) periodComboBox.getSelectedItem();
+            refreshDashboard();
+        });
+
 
         Font buttonFont = new Font("Arial", Font.PLAIN, 16);
 
@@ -87,22 +116,36 @@ public class MainPanel extends JPanel {
 
     }
 
-    private JSplitPane getSplitPane(){
-        JSplitPane splitPane;
-        splitPane = new JSplitPane(
-                JSplitPane.HORIZONTAL_SPLIT,
-                getPieChartPanel(),
-                getTransactionsPanel()
-        );
+    private JPanel getSplitPane(){
+        final int gap = 20; // fixed distance between the chart and the side panel
 
-        splitPane.setDividerLocation(450);
-        splitPane.setDividerSize(1);
-        splitPane.setEnabled(false);
+        JPanel contentPanel = new JPanel(new GridBagLayout());
 
-        splitPane.setOneTouchExpandable(false);
+        JPanel pieChartPanel = getPieChartPanel();
+        JPanel transactionsPanel = getTransactionsPanel();
 
-        splitPane.setResizeWeight(0.7);
-        return splitPane;
+        // Preferred sizes set the starting 70/30 proportion; zero minimums let the frame shrink freely
+        pieChartPanel.setPreferredSize(new Dimension(700, 500));
+        transactionsPanel.setPreferredSize(new Dimension(300, 500));
+        pieChartPanel.setMinimumSize(new Dimension(0, 0));
+        transactionsPanel.setMinimumSize(new Dimension(0, 0));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weighty = 1;
+        gbc.gridy = 0;
+
+        gbc.gridx = 0;
+        gbc.weightx = 0.7;
+        gbc.insets = new Insets(0, 0, 0, gap); // the gap lives here
+        contentPanel.add(pieChartPanel, gbc);
+
+        gbc.gridx = 1;
+        gbc.weightx = 0.3;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        contentPanel.add(transactionsPanel, gbc);
+
+        return contentPanel;
     }
 
     private JPanel getPieChartPanel() {
@@ -121,7 +164,7 @@ public class MainPanel extends JPanel {
         Map<String, Double> spentByCategory = new LinkedHashMap<>();
         Map<String, Double> incomeByCategory = new TreeMap<>(incomeOrder);
 
-        for (Transaction t : monthlyTransactions) {
+        for (Transaction t : periodTransactions) {
             if (t.getTransactionType() == TransactionType.INCOME) {
                 incomeByCategory.merge(t.getCategory() + " income", t.getAmount(), Double::sum);
             } else {
@@ -133,7 +176,7 @@ public class MainPanel extends JPanel {
         double remainingSpend = totalSpent;
 
         // 1) Salary absorbs spending first
-        double salary = Math.max(0, profile.getSalary());
+        double salary = Math.max(0, getPeriodFunds());
         double salaryUsed = Math.min(salary, remainingSpend);
         remainingSpend -= salaryUsed;
         double salaryLeft = salary - salaryUsed;
@@ -211,8 +254,6 @@ public class MainPanel extends JPanel {
     }
 
 
-
-
     private ArrayList<Transaction> getMonthlyTransactions(){
         ArrayList<Transaction> monthlyTransactions = new ArrayList<>();
         LocalDateTime date = LocalDateTime.now();
@@ -229,15 +270,6 @@ public class MainPanel extends JPanel {
         return monthlyTransactions;
     }
 
-    public double getStudentLoanPayments(){
-        double total = 0;
-        for(Transaction t: transactions){
-            if(t.getCategory().equals("Student Loan Payment")){
-                total += t.getAmount();
-            }
-        }
-        return total;
-    }
 
     private void setNewFrameContent(JFrame frame, JPanel panel){
         frame.setContentPane(panel);
@@ -266,21 +298,24 @@ public class MainPanel extends JPanel {
 
         boolean isStudent = profile.getRole().equals("Student");
 
-        double monthlyFunds = getMonthlyFunds();
-        double totalSpend = calculateExpenseTransactionsTotal(monthlyTransactions);
-        double totalIncome = calculateIncomeTransactionsTotal(monthlyTransactions);
-        double availableFunds = monthlyFunds + totalIncome - totalSpend;
+        double periodFunds = getPeriodFunds();
+        double totalSpend = calculateExpenseTransactionsTotal(periodTransactions);
+        double totalIncome = calculateIncomeTransactionsTotal(periodTransactions);
+        double availableFunds = periodFunds + totalIncome - totalSpend;
 
         if(isStudent){
-            double loanPayments = calculateStudentLoanIncomeTotal(monthlyTransactions);
-            double loanAmount = monthlyFunds + loanPayments;
+            double loanPayments = calculateStudentLoanIncomeTotal(periodTransactions);
+            double loanAmount = periodFunds + loanPayments;
             totalIncome = totalIncome - loanPayments; // leave only non-loan income for the "Other income" row
 
             addSummaryRow(transactionsPanel, "Loan amount", loanAmount, transactionsFont, null);
         }else{
-            double monthlyTax = profile.getSalary() * profile.calculateTax() / 12;
-            addSummaryRow(transactionsPanel, "Salary", monthlyFunds, transactionsFont, null);
-            addSummaryRow(transactionsPanel, "Tax", monthlyTax, transactionsFont, null);
+            double monthlyGross = profile.getSalary() / 12;
+            double periodTax = profile.getSalary() * profile.calculateTax() / 12 * getPeriodMultiplier();
+            double periodNationalInsurance = monthlyGross * profile.calculateNationalInsurance() * getPeriodMultiplier();
+            addSummaryRow(transactionsPanel, "Salary", getPeriodSalary(), transactionsFont, null);
+            addSummaryRow(transactionsPanel, "Tax", periodTax, transactionsFont, null);
+            addSummaryRow(transactionsPanel, "National Insurance", periodNationalInsurance, transactionsFont, null);
         }
         if(totalIncome > 0.005){
             addSummaryRow(transactionsPanel, "Other income", totalIncome, transactionsFont, null);
@@ -299,7 +334,8 @@ public class MainPanel extends JPanel {
         if(profile.getRole().equals("Student")){
             return salary;
         }
-        return (salary - (salary * profile.calculateTax())) / 12;
+        double deductions = profile.calculateTax() + profile.calculateNationalInsurance();
+        return (salary - (salary * deductions)) / 12;
     }
 
     private void addSummaryRow(JPanel panel, String labelText, double amount, Font font, Color valueColour){
@@ -340,5 +376,77 @@ public class MainPanel extends JPanel {
             }
         }
         return total;
+    }
+
+    private void refreshDashboard(){
+        periodTransactions = getTransactionsForPeriod();
+
+        remove(splitPane);
+        splitPane = getSplitPane();
+        add(splitPane, BorderLayout.CENTER);
+
+        revalidate();
+        repaint();
+    }
+
+    private ArrayList<Transaction> getTransactionsForPeriod(){
+        return switch(selectedPeriod){
+            case "Day" -> getDailyTransactions();
+            case "Year" -> getYearlyTransactions();
+            case "All time" -> new ArrayList<>(transactions);
+            default -> getMonthlyTransactions();
+        };
+    }
+
+    private ArrayList<Transaction> getDailyTransactions(){
+        ArrayList<Transaction> dailyTransactions = new ArrayList<>();
+        LocalDate today = LocalDate.now();
+        for(Transaction t: transactions){
+            if(t.getTimeOfTransaction().toLocalDate().equals(today)){
+                dailyTransactions.add(t);
+            }
+        }
+        return dailyTransactions;
+    }
+
+    private ArrayList<Transaction> getYearlyTransactions(){
+        ArrayList<Transaction> yearlyTransactions = new ArrayList<>();
+        int year = LocalDate.now().getYear();
+        for(Transaction t: transactions){
+            if(t.getTimeOfTransaction().getYear() == year){
+                yearlyTransactions.add(t);
+            }
+        }
+        return yearlyTransactions;
+    }
+
+    // How many "months of funds" the selected period covers
+    private double getPeriodMultiplier(){
+        return switch(selectedPeriod){
+            case "Day" -> 1.0 / LocalDate.now().lengthOfMonth();
+            case "Year" -> LocalDate.now().getMonthValue();   // months so far this year
+            case "All time" -> getMonthsOfHistory();
+            default -> 1.0;
+        };
+    }
+
+    private double getPeriodFunds(){
+        return getMonthlyFunds() * getPeriodMultiplier();
+    }
+
+    private double getPeriodSalary(){
+        return profile.getSalary() / 12 * getPeriodMultiplier();
+    }
+
+    // Months from the earliest transaction to now, counting both ends
+    private int getMonthsOfHistory(){
+        YearMonth earliest = YearMonth.now();
+        for(Transaction t: transactions){
+            YearMonth month = YearMonth.from(t.getTimeOfTransaction());
+            if(month.isBefore(earliest)){
+                earliest = month;
+            }
+        }
+        return (int) ChronoUnit.MONTHS.between(earliest, YearMonth.now()) + 1;
     }
 }
