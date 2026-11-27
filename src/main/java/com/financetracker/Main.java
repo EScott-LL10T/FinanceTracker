@@ -10,7 +10,7 @@ import javax.swing.ImageIcon;
 
 public class Main{
     public static void main(String[] args) {
-
+        // trying to merge
         // Initialize SQLite Database
         if(!DatabaseHelper.initializeDatabase()){
             return;
