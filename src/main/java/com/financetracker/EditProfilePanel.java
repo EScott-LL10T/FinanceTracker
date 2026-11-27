@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class EditProfilePanel extends JPanel {
+    // hello
     private final JFrame frame;
     private Profile profile;
     private JCheckBox deleteTransactionsCheckBox;
