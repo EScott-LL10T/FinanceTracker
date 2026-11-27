@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
 
+import com.financetracker.errors.IllegalSQLMethodException;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
@@ -19,7 +20,7 @@ import java.time.temporal.ChronoUnit;
 
 public class MainPanel extends JPanel {
 
-    private final Profile profile;
+    private Profile profile;
     private ArrayList<Transaction> transactions;
     private static final Color FUNDS_COLOUR = new Color(128, 0, 128);
     private ArrayList<Transaction> periodTransactions;
@@ -43,12 +44,17 @@ public class MainPanel extends JPanel {
 
     public MainPanel(JFrame frame) {
         // get data from database.
-        profile = DatabaseHelper.getProfile();
-        if(profile == null){
+        try {
+            profile = DatabaseHelper.getProfile();
+            if (profile == null) {
+                return;
+            }
+            transactions = DatabaseHelper.getTransactions(profile.getId());
+            periodTransactions = getTransactionsForPeriod();
+        }catch(IllegalSQLMethodException e){
+            e.printMessage();
             return;
         }
-        transactions = DatabaseHelper.getTransactions(profile.getId());
-        periodTransactions = getTransactionsForPeriod();
 
         // Main layout
         setLayout(new BorderLayout());

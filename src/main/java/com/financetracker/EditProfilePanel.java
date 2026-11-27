@@ -1,12 +1,14 @@
 package com.financetracker;
 
 
+import com.financetracker.errors.IllegalSQLMethodException;
+
 import javax.swing.*;
 import java.awt.*;
 
 public class EditProfilePanel extends JPanel {
     private final JFrame frame;
-    private final Profile profile;
+    private Profile profile;
     private JCheckBox deleteTransactionsCheckBox;
     private JTextField nameField;
     private JComboBox<String> newRoleComboBox;
@@ -18,7 +20,12 @@ public class EditProfilePanel extends JPanel {
 
     public EditProfilePanel(JFrame frame, MainPanel mainPanel){
         this.frame = frame;
-        this.profile = DatabaseHelper.getProfile();
+        try {
+            this.profile = DatabaseHelper.getProfile();
+        } catch (IllegalSQLMethodException e) {
+            e.printMessage();
+            return;
+        }
 
         setLayout(new BorderLayout());
 
@@ -96,7 +103,12 @@ public class EditProfilePanel extends JPanel {
                 editProfile();
 
                 if (deleteTransactions || studentToEmployed || employedToStudent) {
-                    DatabaseHelper.deleteTransactions(profile.getId());
+                    try {
+                        DatabaseHelper.deleteTransactions(profile.getId());
+                    }catch(IllegalSQLMethodException ex){
+                        ex.printMessage();
+                        return;
+                    }
                 }
                 MainPanel newPanel = new MainPanel(frame);
                 frame.setContentPane(newPanel);
@@ -125,7 +137,12 @@ public class EditProfilePanel extends JPanel {
         double debt = (double) debtSpinner.getValue();
         double salary = (double) salarySpinner.getValue();
 
-        DatabaseHelper.updateProfile(id,name, role, debt, salary);
+        try {
+            DatabaseHelper.updateProfile(id,name, role, debt, salary);
+        } catch (IllegalSQLMethodException e) {
+            e.printMessage();
+            return;
+        }
 
 
         frame.setContentPane(new MainPanel(frame));

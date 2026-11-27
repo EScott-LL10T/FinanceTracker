@@ -1,6 +1,8 @@
 package com.financetracker;
 
 
+import com.financetracker.errors.IllegalSQLMethodException;
+
 import javax.swing.*;
 import java.net.URL;
 import javax.swing.ImageIcon;
@@ -10,7 +12,10 @@ public class Main{
     public static void main(String[] args) {
 
         // Initialize SQLite Database
-        DatabaseHelper.initializeDatabase();
+        if(!DatabaseHelper.initializeDatabase()){
+            return;
+        }
+
 
         // Open Swing GUI safely on the Event Dispatch Thread
         JFrame frame = new JFrame();
@@ -29,19 +34,23 @@ public class Main{
 
 
         SwingUtilities.invokeLater(() -> {
-            if(DatabaseHelper.newUser()){
-                SwingUtilities.invokeLater(() -> {
+            try {
+                if(DatabaseHelper.newUser()){
+                    SwingUtilities.invokeLater(() -> {
 
 
-                    CreateProfilePanel profilePanel = new CreateProfilePanel(frame);
+                        CreateProfilePanel profilePanel = new CreateProfilePanel(frame);
 
-                    frame.setContentPane(profilePanel);
+                        frame.setContentPane(profilePanel);
+                        frame.setVisible(true);
+                    });
+                }else{
+                    MainPanel mainPanel = new MainPanel(frame);
+                    frame.setContentPane(mainPanel);
                     frame.setVisible(true);
-                });
-            }else{
-                MainPanel mainPanel = new MainPanel(frame);
-                frame.setContentPane(mainPanel);
-                frame.setVisible(true);
+                }
+            } catch (IllegalSQLMethodException e) {
+                e.printMessage();
             }
         });
     }

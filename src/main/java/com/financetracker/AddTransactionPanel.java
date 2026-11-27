@@ -2,6 +2,8 @@ package com.financetracker;
 
 
 
+import com.financetracker.errors.IllegalSQLMethodException;
+
 import javax.swing.*;
 import java.awt.*;
 import java.text.SimpleDateFormat;
@@ -15,14 +17,19 @@ public class AddTransactionPanel extends JPanel {
     private JTextField descriptionTextField;
     private JSpinner dateSpinner;
     private JComboBox<String> typeComboBox;
-    private final Profile profile;
+    private Profile profile;
     private JLabel costLabel;
     private JLabel descriptionLabel;
     private JLabel typeLabel;
 
     public AddTransactionPanel(JFrame frame, MainPanel mainPanel){
         this.frame = frame;
-        this.profile = DatabaseHelper.getProfile();
+        try {
+            this.profile = DatabaseHelper.getProfile();
+        } catch (IllegalSQLMethodException e) {
+            e.printMessage();
+            return;
+        }
 
         setLayout(new BorderLayout());
 
@@ -114,7 +121,13 @@ public class AddTransactionPanel extends JPanel {
 
         String dateString = formatter.format(date);
 
-        DatabaseHelper.addTransaction(amount, categoryText, description, dateString, profile.getId(), transactionType);
+        try {
+            DatabaseHelper.addTransaction(amount, categoryText, description, dateString, profile.getId(),
+                    transactionType);
+        } catch (IllegalSQLMethodException e) {
+            e.printMessage();
+            return;
+        }
 
 
         frame.setContentPane(new MainPanel(frame));

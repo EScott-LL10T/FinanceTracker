@@ -1,9 +1,7 @@
 package com.financetracker;
 
 
-import com.financetracker.errors.IllegalCategoryArgumentException;
-import com.financetracker.errors.IllegalRoleArgumentException;
-import com.financetracker.errors.IllegalTransactionTypeArgumentException;
+import com.financetracker.errors.*;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -17,7 +15,7 @@ public class DatabaseHelper {
         return DriverManager.getConnection(URL);
     }
 
-    public static void initializeDatabase() {
+    public static boolean initializeDatabase() {
 
         // sql strings for creating the table if not already created normalized to 3NF/BCNF
         String createTableSQL = """
@@ -80,7 +78,12 @@ public class DatabaseHelper {
             System.out.println("Database initialized and table verified.");
         } catch (SQLException e) {
             System.out.println("Database initialization failed: " + e.getMessage());
+            return false;
+        } catch (IllegalSQLMethodException e){
+            e.printMessage();
+            return false;
         }
+        return true;
     }
 
     /* ************************************************************************************************************** */
@@ -90,7 +93,7 @@ public class DatabaseHelper {
 
 
 
-    public static void insertDefaultRoles() {
+    public static void insertDefaultRoles() throws IllegalSQLMethodException {
 
         String sql = "INSERT OR IGNORE INTO roles (name) VALUES (?)";
 
@@ -105,11 +108,12 @@ public class DatabaseHelper {
 
         } catch (SQLException e) {
             System.out.println("SQL error, " + e.getMessage());
+            throw new IllegalSQLMethodException("insertDefaultRoles");
         }
     }
 
 
-    public static int getRoleId(String role) throws IllegalRoleArgumentException {
+    public static int getRoleId(String role) throws IllegalRoleArgumentException, IllegalSQLMethodException {
         String sql = "SELECT id FROM roles WHERE name = ?";
 
         try (Connection conn = connect();
@@ -125,6 +129,7 @@ public class DatabaseHelper {
 
         } catch (SQLException e) {
             System.out.println("SQL error, " + e.getMessage());
+            throw new IllegalSQLMethodException("getRoleId");
         }
 
         throw new IllegalRoleArgumentException();
@@ -136,7 +141,8 @@ public class DatabaseHelper {
     /* ************************************************************************************************************** */
 
 
-    public static int getCategoryId(String category) throws IllegalCategoryArgumentException {
+    public static int getCategoryId(String category) throws IllegalCategoryArgumentException,
+            IllegalAddCategoryException, IllegalSQLMethodException{
 
         String sql = "SELECT id FROM categories WHERE name = ?";
 
@@ -156,12 +162,16 @@ public class DatabaseHelper {
 
         } catch (SQLException e) {
             System.out.println("SQL error, " + e.getMessage());
+            throw new IllegalSQLMethodException("getCategoryId");
+
+        } catch(IllegalSQLMethodException e){
+            e.printMessage();
         }
 
         throw new IllegalCategoryArgumentException();
     }
 
-    public static int addCategory(String category) {
+    public static int addCategory(String category) throws IllegalAddCategoryException, IllegalSQLMethodException {
 
         String sql = "INSERT INTO categories (name) VALUES (?)";
 
@@ -181,16 +191,17 @@ public class DatabaseHelper {
 
         } catch (SQLException e) {
             System.out.println("SQL error, " + e.getMessage());
+            throw new IllegalSQLMethodException("addCategory");
         }
 
-        return -1;
+        throw new IllegalAddCategoryException();
     }
 
     /* ************************************************************************************************************** */
     /*                                          TransactionType TABLE                                                 */
     /* ************************************************************************************************************** */
 
-    public static void insertDefaultTransactionTypes() {
+    public static void insertDefaultTransactionTypes() throws IllegalSQLMethodException {
 
         String sql = "INSERT OR IGNORE INTO transactionType (name) VALUES (?)";
 
@@ -206,10 +217,12 @@ public class DatabaseHelper {
 
         } catch (SQLException e) {
             System.out.println("SQL error, " + e.getMessage());
+            throw new IllegalSQLMethodException("insertDefaultTransactionTypes");
         }
     }
 
-    public static int getTransactionTypeId(String type) throws IllegalTransactionTypeArgumentException {
+    public static int getTransactionTypeId(String type) throws IllegalTransactionTypeArgumentException,
+            IllegalSQLMethodException{
 
         String sql = "SELECT id FROM transactionType WHERE name = ?";
 
@@ -226,6 +239,7 @@ public class DatabaseHelper {
 
         } catch (SQLException e) {
             System.out.println("SQL error, " + e.getMessage());
+            throw new IllegalSQLMethodException("getTransactionTypeId");
         }
         throw new IllegalTransactionTypeArgumentException();
     }
@@ -237,11 +251,14 @@ public class DatabaseHelper {
 
 
 
-    public static void createNewUser(String name, String role, double debt, double salary){
+    public static void createNewUser(String name, String role, double debt, double salary) throws IllegalSQLMethodException{
         int roleId;
         try {
             roleId = getRoleId(role);
         }catch(IllegalRoleArgumentException e){
+            e.printMessage();
+            return;
+        }catch(IllegalSQLMethodException e){
             e.printMessage();
             return;
         }
@@ -265,10 +282,11 @@ public class DatabaseHelper {
 
         }catch(SQLException e){
             System.out.println("SQL error, " + e.getMessage());
+            throw new IllegalSQLMethodException("createNewUser");
         }
     }
 
-    public static boolean newUser() {
+    public static boolean newUser() throws IllegalSQLMethodException{
         String sql = "SELECT COUNT(1) FROM profile ";
 
         try(Connection conn = connect();
@@ -283,12 +301,13 @@ public class DatabaseHelper {
 
         } catch (SQLException e) {
             System.out.println("SQL error, " + e.getMessage());
+            throw new IllegalSQLMethodException("newUser");
         }
         // default to false so the correct message is displayed when the user loads.
         return false;
     }
 
-    public static Profile getProfile(){
+    public static Profile getProfile() throws IllegalSQLMethodException{
         String sql = """
             SELECT profile.*, roles.name AS role
             FROM profile
@@ -310,17 +329,22 @@ public class DatabaseHelper {
 
         } catch (SQLException e) {
             System.out.println("SQL error, " + e.getMessage());
+            throw new IllegalSQLMethodException("getProfile");
         }
         return null;
     }
 
 
-    public static void updateProfile(int id,String name, String role, double debt, double salary) {
+    public static void updateProfile(int id,String name, String role, double debt, double salary) throws
+            IllegalSQLMethodException {
 
         int roleId;
         try {
             roleId = getRoleId(role);
         }catch(IllegalRoleArgumentException e){
+            e.printMessage();
+            return;
+        }catch(IllegalSQLMethodException e){
             e.printMessage();
             return;
         }
@@ -342,6 +366,7 @@ public class DatabaseHelper {
 
         } catch (SQLException e) {
             System.out.println("SQL error, " + e.getMessage());
+            throw new IllegalSQLMethodException("updateProfile");
         }
     }
 
@@ -353,12 +378,18 @@ public class DatabaseHelper {
 
 
     public static void addTransaction(double amount, String category, String description, String createdAt,
-                                      int profileId, String transactionType){
+                                      int profileId, String transactionType) throws IllegalSQLMethodException{
 
         int categoryId;
         try {
             categoryId = getCategoryId(category);
         } catch (IllegalCategoryArgumentException e) {
+            e.printMessage();
+            return;
+        } catch (IllegalAddCategoryException e){
+            e.printMessage();
+            return;
+        }catch (IllegalSQLMethodException e){
             e.printMessage();
             return;
         }
@@ -367,6 +398,9 @@ public class DatabaseHelper {
         try{
             transactionId = getTransactionTypeId(transactionType);
         }catch(IllegalTransactionTypeArgumentException e){
+            e.printMessage();
+            return;
+        }catch(IllegalSQLMethodException e){
             e.printMessage();
             return;
         }
@@ -390,11 +424,12 @@ public class DatabaseHelper {
 
         }catch(SQLException e){
             System.out.println("SQL error, " + e.getMessage());
+            throw new IllegalSQLMethodException("addTransaction");
         }
     }
 
 
-    public static ArrayList<Transaction> getTransactions(int profileId){
+    public static ArrayList<Transaction> getTransactions(int profileId) throws IllegalSQLMethodException{
         ArrayList<Transaction> transactions = new ArrayList<>();
         String sql = """
         SELECT t.id,
@@ -432,12 +467,13 @@ public class DatabaseHelper {
 
         } catch (SQLException e) {
             System.out.println("SQL error, " + e.getMessage());
+            throw new IllegalSQLMethodException("getTransactions");
         }
         return transactions;
 
     }
 
-    public static void deleteTransaction(int id){
+    public static void deleteTransaction(int id) throws IllegalSQLMethodException{
         String sql = "DELETE FROM transactions WHERE id = ?";
 
         try (Connection conn = connect();
@@ -446,10 +482,11 @@ public class DatabaseHelper {
             stmt.executeUpdate();
         }catch(SQLException e){
             System.out.println("SQL error, " + e.getMessage());
+            throw new IllegalSQLMethodException("deleteTransaction");
         }
     }
 
-    public static void deleteTransactions(int profileId) {
+    public static void deleteTransactions(int profileId) throws IllegalSQLMethodException{
         String sql = "DELETE FROM transactions WHERE profileId = ?";
 
         try (Connection conn = connect();
@@ -461,6 +498,7 @@ public class DatabaseHelper {
 
         } catch (SQLException e) {
             System.out.println("SQL error, " + e.getMessage());
+            throw new IllegalSQLMethodException("deleteTransaction");
         }
     }
 

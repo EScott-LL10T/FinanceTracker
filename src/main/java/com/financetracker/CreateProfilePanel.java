@@ -1,6 +1,8 @@
 package com.financetracker;
 
 
+import com.financetracker.errors.IllegalSQLMethodException;
+
 import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDateTime;
@@ -86,14 +88,18 @@ public class CreateProfilePanel extends JPanel{
         }
         double debt = (double) debtSpinner.getValue();
         double salary = (double) salarySpinner.getValue();
-
-        if(role.equals("Student")){
-            DatabaseHelper.createNewUser(name, role, 0,0);
-            DatabaseHelper.addTransaction(salary, "Student Loan Payment",
-                    "First student loan payment", LocalDateTime.now().toString(),
-                    Objects.requireNonNull(DatabaseHelper.getProfile()).getId(), "Income");
-        }else{
-            DatabaseHelper.createNewUser(name, role, debt, salary);
+        try {
+            if (role.equals("Student")) {
+                DatabaseHelper.createNewUser(name, role, 0, 0);
+                DatabaseHelper.addTransaction(salary, "Student Loan Payment",
+                        "First student loan payment", LocalDateTime.now().toString(),
+                        Objects.requireNonNull(DatabaseHelper.getProfile()).getId(), "Income");
+            } else {
+                DatabaseHelper.createNewUser(name, role, debt, salary);
+            }
+        }catch(IllegalSQLMethodException e){
+            e.printMessage();
+            return;
         }
 
         frame.setContentPane(new MainPanel(frame));
