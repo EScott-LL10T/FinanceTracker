@@ -5,6 +5,7 @@ import com.financetracker.errors.IllegalSQLMethodException;
 
 import javax.swing.*;
 import java.awt.*;
+import java.math.BigDecimal;
 
 public class EditProfilePanel extends JPanel {
     // hello
@@ -135,8 +136,8 @@ public class EditProfilePanel extends JPanel {
         }
         String role = getRole();
 
-        double debt = (double) debtSpinner.getValue();
-        double salary = (double) salarySpinner.getValue();
+        BigDecimal debt = Money.of((double) debtSpinner.getValue());
+        BigDecimal salary = Money.of((double) salarySpinner.getValue());
 
         try {
             DatabaseHelper.updateProfile(id,name, role, debt, salary);
@@ -226,7 +227,7 @@ public class EditProfilePanel extends JPanel {
 
         debtSpinner = new JSpinner(
                 new SpinnerNumberModel(
-                        profile.getDebt(),
+                        profile.getDebt().doubleValue(),
                         0.0,
                         10000000.0,
                         1000.0
@@ -248,7 +249,7 @@ public class EditProfilePanel extends JPanel {
 
         salarySpinner = new JSpinner(
                 new SpinnerNumberModel(
-                        profile.getSalary(),
+                        profile.getSalary().doubleValue(),
                         0.0,
                         10000000.0,
                         1000.0

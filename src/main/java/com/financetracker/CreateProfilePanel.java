@@ -5,6 +5,7 @@ import com.financetracker.errors.IllegalSQLMethodException;
 
 import javax.swing.*;
 import java.awt.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -86,11 +87,11 @@ public class CreateProfilePanel extends JPanel{
         }else{
             role = objRole.toString();
         }
-        double debt = (double) debtSpinner.getValue();
-        double salary = (double) salarySpinner.getValue();
+        BigDecimal debt = Money.of((double) debtSpinner.getValue());
+        BigDecimal salary = Money.of((double) salarySpinner.getValue());
         try {
             if (role.equals("Student")) {
-                DatabaseHelper.createNewUser(name, role, 0, 0);
+                DatabaseHelper.createNewUser(name, role, Money.ZERO, Money.ZERO);
                 DatabaseHelper.addTransaction(salary, "Student Loan Payment",
                         "First student loan payment", LocalDateTime.now().toString(),
                         Objects.requireNonNull(DatabaseHelper.getProfile()).getId(), "Income");

@@ -6,6 +6,7 @@ import com.financetracker.errors.IllegalSQLMethodException;
 
 import javax.swing.*;
 import java.awt.*;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -94,7 +95,7 @@ public class AddTransactionPanel extends JPanel {
     }
 
     private void addTransaction(){
-        double amount = (double) amountSpinner.getValue();
+        BigDecimal amount = Money.of((double) amountSpinner.getValue());
         String categoryText = (String) categoryComboBox.getSelectedItem();
         if(categoryText == null){
             categoryText = "Entertainment";

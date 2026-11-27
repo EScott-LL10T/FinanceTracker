@@ -5,14 +5,15 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ProfileTest {
-    // String name, String role, double debt, double salary, String timeOfAccountCreation, int id
+    // String name, String role, BigDecimal debt, BigDecimal salary, String timeOfAccountCreation, int id
     String d = LocalDateTime.now().toString();
-    Profile p = new Profile("Elliot", "Student", 0.0, 4000.0, d, 1);
+    Profile p = new Profile("Elliot", "Student", Money.of("0"), Money.of("4000"), d, 1);
 
     @Test
     void getName(){
@@ -26,12 +27,12 @@ class ProfileTest {
 
     @Test
     void getDebt(){
-        assertEquals(0.0, p.getDebt());
+        assertEquals(Money.of("0.00"), p.getDebt());
     }
 
     @Test
     void getSalary(){
-        assertEquals(4000.0, p.getSalary());
+        assertEquals(Money.of("4000.00"), p.getSalary());
     }
 
     @ParameterizedTest
@@ -43,7 +44,7 @@ class ProfileTest {
             "Elliot, Employed, 0.0, 125140.0, 2026-11-08T19:10:00, 1, 0.4",
             "Elliot, Employed, 0.0, 125141.0, 2026-11-08T19:10:00, 1, 0.45"
     })
-    void calculateTaxParameterized(String n, String r, double d, double s, String dt, int id, double expected){
+    void calculateTaxParameterized(String n, String r, BigDecimal d, BigDecimal s, String dt, int id, double expected){
         Profile pe = new Profile(n, r, d, s, dt, id);
         assertEquals(expected, pe.calculateTax());
 

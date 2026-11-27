@@ -4,9 +4,12 @@ package com.financetracker;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
+import java.util.function.Predicate;
 
 import com.financetracker.errors.IllegalSQLMethodException;
 import org.jfree.chart.ChartPanel;
@@ -27,6 +30,7 @@ public class MainPanel extends JPanel {
     private String selectedPeriod = "Month";
     private JPanel splitPane;
     private static final String[] PERIODS = {"Day", "Month", "Year", "All time"};
+    private static final BigDecimal MONTHS_PER_YEAR = BigDecimal.valueOf(12);
 
     private static final Map<String, Color> CATEGORY_COLOURS = Map.of(
             "Entertainment", Color.RED,
@@ -166,56 +170,56 @@ public class MainPanel extends JPanel {
                 })
                 .thenComparing(Comparator.naturalOrder());
 
-        double totalSpent = 0.0;
-        Map<String, Double> spentByCategory = new LinkedHashMap<>();
-        Map<String, Double> incomeByCategory = new TreeMap<>(incomeOrder);
+        BigDecimal totalSpent = Money.ZERO;
+        Map<String, BigDecimal> spentByCategory = new LinkedHashMap<>();
+        Map<String, BigDecimal> incomeByCategory = new TreeMap<>(incomeOrder);
 
         for (Transaction t : periodTransactions) {
             if (t.getTransactionType() == TransactionType.INCOME) {
-                incomeByCategory.merge(t.getCategory() + " income", t.getAmount(), Double::sum);
+                incomeByCategory.merge(t.getCategory() + " income", t.getAmount(), BigDecimal::add);
             } else {
-                spentByCategory.merge(t.getCategory(), t.getAmount(), Double::sum);
-                totalSpent += t.getAmount();
+                spentByCategory.merge(t.getCategory(), t.getAmount(), BigDecimal::add);
+                totalSpent = totalSpent.add(t.getAmount());
             }
         }
 
-        double remainingSpend = totalSpent;
+        BigDecimal remainingSpend = totalSpent;
 
         // 1) Salary absorbs spending first
-        double salary = Math.max(0, getPeriodFunds());
-        double salaryUsed = Math.min(salary, remainingSpend);
-        remainingSpend -= salaryUsed;
-        double salaryLeft = salary - salaryUsed;
+        BigDecimal salary = getPeriodFunds().max(Money.ZERO);
+        BigDecimal salaryUsed = salary.min(remainingSpend);
+        remainingSpend = remainingSpend.subtract(salaryUsed);
+        BigDecimal salaryLeft = salary.subtract(salaryUsed);
 
         // 2) Then income chunks, in priority order
-        Map<String, Double> incomeLeft = new LinkedHashMap<>();
-        for (Map.Entry<String, Double> e : incomeByCategory.entrySet()) {
-            double used = Math.min(e.getValue(), remainingSpend);
-            remainingSpend -= used;
-            double left = e.getValue() - used;
-            if (left > 0.005) {
+        Map<String, BigDecimal> incomeLeft = new LinkedHashMap<>();
+        for (Map.Entry<String, BigDecimal> e : incomeByCategory.entrySet()) {
+            BigDecimal used = e.getValue().min(remainingSpend);
+            remainingSpend = remainingSpend.subtract(used);
+            BigDecimal left = e.getValue().subtract(used);
+            if (left.signum() > 0) {
                 incomeLeft.put(e.getKey(), left);
             }
         }
 
-        // 3) Whatever is still unaccounted for is the overspend
-        double overspent = remainingSpend > 0.005 ? remainingSpend : 0.0;
+        // 3) Whatever is still unaccounted for is the overspend (exact arithmetic, so no rounding tolerance needed)
+        BigDecimal overspent = remainingSpend.max(Money.ZERO);
 
         // Funds slices FIRST
-        if (salaryLeft > 0.005) {
+        if (salaryLeft.signum() > 0) {
             dataset.setValue("Available", salaryLeft);
         }
-        for (Map.Entry<String, Double> e : incomeLeft.entrySet()) {
+        for (Map.Entry<String, BigDecimal> e : incomeLeft.entrySet()) {
             dataset.setValue(e.getKey(), e.getValue());
         }
 
         // Expense slices LAST
-        for (Map.Entry<String, Double> e : spentByCategory.entrySet()) {
+        for (Map.Entry<String, BigDecimal> e : spentByCategory.entrySet()) {
             dataset.setValue(e.getKey(), e.getValue());
         }
 
-        String title = overspent > 0
-                ? String.format("Budget Distribution - Overspent by £%.2f", overspent)
+        String title = overspent.signum() > 0
+                ? "Budget Distribution - Overspent by " + Money.format(overspent)
                 : "Budget Distribution";
 
         return new ChartPanel(getPieChart(dataset, title));
@@ -283,14 +287,15 @@ public class MainPanel extends JPanel {
         frame.repaint();
     }
 
-    private static double calculateExpenseTransactionsTotal(ArrayList<Transaction> transactions){
-        double total = 0.0;
-        for(Transaction t : transactions){
-            if(t.getTransactionType() == TransactionType.EXPENSE) {
-                total = total + t.getAmount();
-            }
-        }
-        return total;
+    private static BigDecimal sumAmounts(List<Transaction> transactions, Predicate<Transaction> filter){
+        return transactions.stream()
+                .filter(filter)
+                .map(Transaction::getAmount)
+                .reduce(Money.ZERO, BigDecimal::add);
+    }
+
+    private static BigDecimal calculateExpenseTransactionsTotal(List<Transaction> transactions){
+        return sumAmounts(transactions, t -> t.getTransactionType() == TransactionType.EXPENSE);
     }
 
     private JPanel getTransactionsPanel(){
@@ -302,49 +307,34 @@ public class MainPanel extends JPanel {
         titledBorder.setTitleFont(new Font("Arial", Font.BOLD, 20));
         transactionsPanel.setBorder(titledBorder);
 
-        boolean isStudent = profile.getRole().equals("Student");
+        BigDecimal periodFunds = getPeriodFunds();
+        BigDecimal totalSpend = calculateExpenseTransactionsTotal(periodTransactions);
+        BigDecimal totalIncome = calculateIncomeTransactionsTotal(periodTransactions);
+        BigDecimal availableFunds = periodFunds.add(totalIncome).subtract(totalSpend);
 
-        double periodFunds = getPeriodFunds();
-        double totalSpend = calculateExpenseTransactionsTotal(periodTransactions);
-        double totalIncome = calculateIncomeTransactionsTotal(periodTransactions);
-        double availableFunds = periodFunds + totalIncome - totalSpend;
-
-        if(isStudent){
-            double loanPayments = calculateStudentLoanIncomeTotal(periodTransactions);
-            double loanAmount = periodFunds + loanPayments;
-            totalIncome = totalIncome - loanPayments; // leave only non-loan income for the "Other income" row
+        if(profile.isStudent()){
+            BigDecimal loanPayments = calculateStudentLoanIncomeTotal(periodTransactions);
+            BigDecimal loanAmount = periodFunds.add(loanPayments);
+            totalIncome = totalIncome.subtract(loanPayments); // leave only non-loan income for the "Other income" row
 
             addSummaryRow(transactionsPanel, "Loan amount", loanAmount, transactionsFont, null);
         }else{
-            double monthlyGross = profile.getSalary() / 12;
-            double periodTax = profile.getSalary() * profile.calculateTax() / 12 * getPeriodMultiplier();
-            double periodNationalInsurance = monthlyGross * profile.calculateNationalInsurance() * getPeriodMultiplier();
             addSummaryRow(transactionsPanel, "Salary", getPeriodSalary(), transactionsFont, null);
-            addSummaryRow(transactionsPanel, "Tax", periodTax, transactionsFont, null);
-            addSummaryRow(transactionsPanel, "National Insurance", periodNationalInsurance, transactionsFont, null);
+            addSummaryRow(transactionsPanel, "Tax", getPeriodTax(), transactionsFont, null);
+            addSummaryRow(transactionsPanel, "National Insurance", getPeriodNationalInsurance(), transactionsFont, null);
         }
-        if(totalIncome > 0.005){
+        if(totalIncome.signum() > 0){
             addSummaryRow(transactionsPanel, "Other income", totalIncome, transactionsFont, null);
         }
 
         addSummaryRow(transactionsPanel, "Total Spent", totalSpend, transactionsFont, null);
         addSummaryRow(transactionsPanel, "Available", availableFunds, transactionsFont,
-                availableFunds < 0 ? Color.RED : null);
+                availableFunds.signum() < 0 ? Color.RED : null);
 
         return transactionsPanel;
     }
 
-    // Loan for students, monthly take-home pay for everyone else
-    private double getMonthlyFunds(){
-        double salary = profile.getSalary();
-        if(profile.getRole().equals("Student")){
-            return salary;
-        }
-        double deductions = profile.calculateTax() + profile.calculateNationalInsurance();
-        return (salary - (salary * deductions)) / 12;
-    }
-
-    private void addSummaryRow(JPanel panel, String labelText, double amount, Font font, Color valueColour){
+    private void addSummaryRow(JPanel panel, String labelText, BigDecimal amount, Font font, Color valueColour){
         if(panel.getComponentCount() > 0){
             panel.add(Box.createVerticalStrut(5));
         }
@@ -352,8 +342,7 @@ public class MainPanel extends JPanel {
         JLabel label = new JLabel(labelText);
         label.setFont(font);
 
-        String amountText = (amount < 0 ? "-" : "") + String.format("£%.2f", Math.abs(amount));
-        JLabel amountLabel = new JLabel(amountText);
+        JLabel amountLabel = new JLabel(Money.format(amount));
         amountLabel.setFont(font);
         if(valueColour != null){
             amountLabel.setForeground(valueColour);
@@ -363,25 +352,13 @@ public class MainPanel extends JPanel {
         panel.add(amountLabel);
     }
 
-    private static double calculateStudentLoanIncomeTotal(ArrayList<Transaction> transactions){
-        double total = 0.0;
-        for(Transaction t : transactions){
-            if(t.getTransactionType() == TransactionType.INCOME
-                    && t.getCategory().equals("Student Loan Payment")){
-                total = total + t.getAmount();
-            }
-        }
-        return total;
+    private static BigDecimal calculateStudentLoanIncomeTotal(List<Transaction> transactions){
+        return sumAmounts(transactions, t -> t.getTransactionType() == TransactionType.INCOME
+                && t.getCategory().equals("Student Loan Payment"));
     }
 
-    private static double calculateIncomeTransactionsTotal(ArrayList<Transaction> transactions){
-        double total = 0.0;
-        for(Transaction t : transactions){
-            if(t.getTransactionType() == TransactionType.INCOME){
-                total = total + t.getAmount();
-            }
-        }
-        return total;
+    private static BigDecimal calculateIncomeTransactionsTotal(List<Transaction> transactions){
+        return sumAmounts(transactions, t -> t.getTransactionType() == TransactionType.INCOME);
     }
 
     private void refreshDashboard(){
@@ -426,22 +403,40 @@ public class MainPanel extends JPanel {
         return yearlyTransactions;
     }
 
-    // How many "months of funds" the selected period covers
-    private double getPeriodMultiplier(){
-        return switch(selectedPeriod){
-            case "Day" -> 1.0 / LocalDate.now().lengthOfMonth();
-            case "Year" -> LocalDate.now().getMonthValue();   // months so far this year
-            case "All time" -> getMonthsOfHistory();
-            default -> 1.0;
+    // Scales a monthly amount to the selected period, rounded to pence
+    private BigDecimal monthlyToPeriod(BigDecimal monthlyAmount){
+        BigDecimal scaled = switch(selectedPeriod){
+            case "Day" -> monthlyAmount.divide(BigDecimal.valueOf(LocalDate.now().lengthOfMonth()), MathContext.DECIMAL64);
+            case "Year" -> monthlyAmount.multiply(BigDecimal.valueOf(LocalDate.now().getMonthValue())); // months so far this year
+            case "All time" -> monthlyAmount.multiply(BigDecimal.valueOf(getMonthsOfHistory()));
+            default -> monthlyAmount;
         };
+        return Money.of(scaled);
     }
 
-    private double getPeriodFunds(){
-        return getMonthlyFunds() * getPeriodMultiplier();
+    // Scales an annual amount to the selected period, rounding only once at the end
+    private BigDecimal annualToPeriod(BigDecimal annualAmount){
+        return monthlyToPeriod(annualAmount.divide(MONTHS_PER_YEAR, MathContext.DECIMAL64));
     }
 
-    private double getPeriodSalary(){
-        return profile.getSalary() / 12 * getPeriodMultiplier();
+    // Loan for students, take-home pay (salary - tax - NI) for everyone else
+    private BigDecimal getPeriodFunds(){
+        if(profile.isStudent()){
+            return monthlyToPeriod(profile.getSalary());
+        }
+        return getPeriodSalary().subtract(getPeriodTax()).subtract(getPeriodNationalInsurance());
+    }
+
+    private BigDecimal getPeriodSalary(){
+        return annualToPeriod(profile.getSalary());
+    }
+
+    private BigDecimal getPeriodTax(){
+        return annualToPeriod(profile.calculateAnnualTax());
+    }
+
+    private BigDecimal getPeriodNationalInsurance(){
+        return annualToPeriod(profile.calculateAnnualNationalInsurance());
     }
 
     // Months from the earliest transaction to now, counting both ends

@@ -2,20 +2,21 @@ package com.financetracker;
 
 
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class Transaction {
     private final int id;
-    private final double amount;
+    private final BigDecimal amount;
     private final String category;
     private final String description;
     private final String dateTime;
     private final TransactionType transactionType;
 
-    public Transaction(int id, double amount, String category, String description, String dateTime, TransactionType
+    public Transaction(int id, BigDecimal amount, String category, String description, String dateTime, TransactionType
             transactionType){
         this.id = id;
-        this.amount = amount;
+        this.amount = Money.of(amount);
         this.category = category;
         this.description = description;
         this.dateTime = dateTime;
@@ -30,7 +31,7 @@ public class Transaction {
         return id;
     }
 
-    public double getAmount(){ return amount; }
+    public BigDecimal getAmount(){ return amount; }
 
     public String getCategory(){ return category; }
 

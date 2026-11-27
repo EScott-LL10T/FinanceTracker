@@ -3,6 +3,7 @@ package com.financetracker;
 
 import com.financetracker.errors.*;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -13,6 +14,17 @@ public class DatabaseHelper {
 
     public static Connection connect() throws SQLException {
         return DriverManager.getConnection(URL);
+    }
+
+    /* Money is stored in REAL columns. Every conversion between BigDecimal and the database goes through */
+    /* these two methods, so the storage format can be changed in one place.                              */
+
+    private static void setMoney(PreparedStatement stmt, int index, BigDecimal amount) throws SQLException {
+        stmt.setDouble(index, Money.of(amount).doubleValue());
+    }
+
+    private static BigDecimal getMoney(ResultSet rs, String column) throws SQLException {
+        return Money.of(rs.getDouble(column));
     }
 
     public static boolean initializeDatabase() {
@@ -251,7 +263,7 @@ public class DatabaseHelper {
 
 
 
-    public static void createNewUser(String name, String role, double debt, double salary) throws IllegalSQLMethodException{
+    public static void createNewUser(String name, String role, BigDecimal debt, BigDecimal salary) throws IllegalSQLMethodException{
         int roleId;
         try {
             roleId = getRoleId(role);
@@ -274,8 +286,8 @@ public class DatabaseHelper {
 
             stmt.setString(1, name);
             stmt.setInt(2, roleId);
-            stmt.setDouble(3, debt);
-            stmt.setDouble(4, salary);
+            setMoney(stmt, 3, debt);
+            setMoney(stmt, 4, salary);
             stmt.setString(5, LocalDateTime.now().toString());
 
             stmt.executeUpdate();
@@ -320,8 +332,8 @@ public class DatabaseHelper {
             if (rs.next()) {
                 String name = rs.getString("name");
                 String role = rs.getString("role");
-                double debt = rs.getDouble("debt");
-                double salary = rs.getDouble("salary");
+                BigDecimal debt = getMoney(rs, "debt");
+                BigDecimal salary = getMoney(rs, "salary");
                 int id = rs.getInt("id");
                 String createdAt = rs.getString("createdAt");
                 return new Profile(name, role, debt, salary, createdAt, id);
@@ -335,7 +347,7 @@ public class DatabaseHelper {
     }
 
 
-    public static void updateProfile(int id,String name, String role, double debt, double salary) throws
+    public static void updateProfile(int id,String name, String role, BigDecimal debt, BigDecimal salary) throws
             IllegalSQLMethodException {
 
         int roleId;
@@ -358,8 +370,8 @@ public class DatabaseHelper {
 
             stmt.setString(1, name);
             stmt.setInt(2, roleId);
-            stmt.setDouble(3, debt);
-            stmt.setDouble(4, salary);
+            setMoney(stmt, 3, debt);
+            setMoney(stmt, 4, salary);
             stmt.setInt(5, id);
 
             stmt.executeUpdate();
@@ -377,7 +389,7 @@ public class DatabaseHelper {
 
 
 
-    public static void addTransaction(double amount, String category, String description, String createdAt,
+    public static void addTransaction(BigDecimal amount, String category, String description, String createdAt,
                                       int profileId, String transactionType) throws IllegalSQLMethodException{
 
         int categoryId;
@@ -414,7 +426,7 @@ public class DatabaseHelper {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, profileId);
-            stmt.setDouble(2, amount);
+            setMoney(stmt, 2, amount);
             stmt.setInt(3, categoryId);
             stmt.setString(4, description);
             stmt.setString(5, createdAt);
@@ -453,7 +465,7 @@ public class DatabaseHelper {
 
             while(rs.next()) {
                 int id = rs.getInt("id");
-                double amount = rs.getDouble("amount");
+                BigDecimal amount = getMoney(rs, "amount");
                 String category = rs.getString("category");
                 String description = rs.getString("description");
                 String createdAt = rs.getString("createdAt");
